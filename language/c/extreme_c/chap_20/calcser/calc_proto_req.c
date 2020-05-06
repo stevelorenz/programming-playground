@@ -1,7 +1,3 @@
-/*
- * calc_proto_req.c
- */
-
 #include <string.h>
 
 #include "calc_proto_req.h"
@@ -16,7 +12,7 @@ static char MUL_STR[] = "MUL";
 static char MULM_STR[] = "MULM";
 static char DIV_STR[] = "DIV";
 
-enum method_t str_to_method(const char *str)
+method_t str_to_method(const char *str)
 {
 	if (!strcmp(str, GETMEM_STR))
 		return GETMEM;
@@ -39,7 +35,7 @@ enum method_t str_to_method(const char *str)
 	return 0;
 }
 
-const char *method_to_str(enum method_t method)
+const char *method_to_str(method_t method)
 {
 	switch (method) {
 	case GETMEM:
