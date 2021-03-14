@@ -1,3 +1,3 @@
-# Programming Playground #
+# Programming Playground
 
 > Übung macht Meister.
