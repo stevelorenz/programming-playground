@@ -22,7 +22,7 @@ SCRIPT
 
 $bootstrap_devtools= <<-SCRIPT
 apt-get update -qq
-DEBIAN_FRONTEND=noninteractive apt-get install -y rustc
+DEBIAN_FRONTEND=noninteractive apt-get install -y rustc golang
 SCRIPT
 
 Vagrant.configure("2") do |config|
@@ -38,9 +38,6 @@ Vagrant.configure("2") do |config|
       vb.name = "playground"
       vb.memory = RAM
       vb.cpus = CPUS
-      vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.1", "1"]
-      vb.customize ["setextradata", :id, "VBoxInternal/CPUM/SSE4.2", "1"]
     end
   end
-
 end

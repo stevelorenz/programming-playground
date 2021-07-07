@@ -264,3 +264,4 @@ hs_err_pid*
 *.lc
 **/**/node_modules/
 **/package-lock.json
+**/**/.ccls-cache/
