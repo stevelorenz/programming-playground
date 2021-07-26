@@ -3,7 +3,7 @@
 # setup.sh
 #
 
-apt-get update -y
-apt-get install -y cmake meson \
-    libboost-dev libboost-program-options-dev libasio-dev libboost-system-dev libboost-coroutine-dev \
-    libmsgsl-dev
+sudo apt-get update -y
+sudo apt-get install -y cmake meson python3-pip
+
+pip3 install --user flask requests

@@ -267,3 +267,4 @@ hs_err_pid*
 **/**/.ccls-cache/
 
 *.pem
+.vscode/
