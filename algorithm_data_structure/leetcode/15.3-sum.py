@@ -13,6 +13,7 @@ class Solution:
         nums.sort()
         res = []
 
+        # Left and right occupy two positions
         for i in range(len(nums) - 2):
             # Skip duplicated number
             if i > 0 and nums[i] == nums[i - 1]:
@@ -20,11 +21,13 @@ class Solution:
 
             # Two pointers approach
             left = i + 1
-            right = len(nums) - 1
+            right = len(nums) - 1  # the last number
 
+            # Left and right can not be the same number
             while left < right:
                 curr = nums[i] + nums[left] + nums[right]
                 if curr == 0:
+                    # Find a solution
                     res.append([nums[i], nums[left], nums[right]])
                     # skip duplicated result in the res
                     while left < right and nums[left] == nums[left + 1]:

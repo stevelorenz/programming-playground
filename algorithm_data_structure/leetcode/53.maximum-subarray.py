@@ -12,6 +12,7 @@ class Solution:
 
         pre = nums[0]
         res = pre
+        # Greedy approach
         for i in range(1, len(nums)):
             # If nums[i] is larger than the previous one, the previous result is negative
             pre = max(nums[i], pre + nums[i])
