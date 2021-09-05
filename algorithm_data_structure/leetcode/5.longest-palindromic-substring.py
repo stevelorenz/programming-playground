@@ -8,6 +8,14 @@
 class Solution:
     # Yet another dynamic programming task
     def longestPalindrome(self, s: str) -> str:
-        pass
-# @lc code=end
+        # Two situations: aba, aa
 
+        # Use dynamic programming: bab -> c bab c is also OK
+
+        if len(s) == 1:
+            return s
+
+        return []
+
+
+# @lc code=end

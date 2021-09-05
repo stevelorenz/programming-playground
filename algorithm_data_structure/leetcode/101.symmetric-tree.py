@@ -13,22 +13,27 @@
 #         self.right = right
 class Solution:
     def isSymmetric(self, root: Optional[TreeNode]) -> bool:
+        # Use DFS ---> recurision
+        def dfs(root1, root2):
+            # Check special cases!
+            if root1 == root2 == None:
+                return True
+
+            if not root1 or not root2:
+                return False
+
+            # Start the recursion
+            res = (
+                root1.val == root2.val
+                and dfs(root1.left, root2.right)
+                and dfs(root1.right, root2.left)
+            )
+
+            return res
+
         if not root:
             return True
-        return self.mirror_visite(root.left, root.right)
-
-    def mirror_visite(self, left, right):
-        if not left and not right:
-            return True
-        try:
-            if left.val == right.val:
-                if self.mirror_visite(left.left, right.right) and self.mirror_visite(
-                    left.right, right.left
-                ):
-                    return True
-            return False
-        except:
-            return False
+        return dfs(root.left, root.right)
 
 
 # @lc code=end

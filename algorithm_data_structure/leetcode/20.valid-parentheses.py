@@ -14,9 +14,10 @@ class Solution:
             if p in "{[(":
                 stack.append(p)
             else:
+                # Not stack means no corresponded element to match
                 if not stack or d[stack.pop()] != p:
                     return False
-        # The stack should be empty!
+        # The stack should be empty! Otherwise there's redudant elements.
         return not stack
 
 

@@ -13,12 +13,32 @@
 #         self.right = right
 class Solution:
     def maxDepth(self, root: Optional[TreeNode]) -> int:
-        # Boundary condition to terminate recursion
-        if root is None:
+        # if root is None:
+        #     return 0
+
+        # # Recursive approach
+        # ld = self.maxDepth(root.left)
+        # rd = self.maxDepth(root.right)
+        # return 1 + max(ld, rd)  # 1 for the root node
+
+        # BFS approah
+        if not root:
             return 0
-        ld = self.maxDepth(root.left)
-        rd = self.maxDepth(root.right)
-        return 1 + max(ld, rd)
+        queue = [root]
+        depth = 0
+
+        while queue:
+            layer_size = len(queue)
+            for i in range(layer_size):
+                node = queue.pop(0)
+                if node.left:
+                    queue.append(node.left)
+                if node.right:
+                    queue.append(node.right)
+            # Iterate over all nodes in the current layer
+            depth += 1
+
+        return depth
 
 
 # @lc code=end
