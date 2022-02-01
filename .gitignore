@@ -260,11 +260,14 @@ hs_err_pid*
 #                                MISC                                 #
 #######################################################################
 
-.vagrant/
-*.lc
+**/**/.ccls-cache/
 **/**/node_modules/
 **/package-lock.json
-**/**/.ccls-cache/
+*.lc
+.vagrant/
 
 *.pem
 .vscode/
+
+**/**/datasets/
+datasets/
