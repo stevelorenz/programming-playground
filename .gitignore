@@ -271,3 +271,4 @@ hs_err_pid*
 
 **/**/datasets/
 datasets/
+machine_learning/hands_on_machine_learning_with_scikit_learn_tensorflow/images/**
