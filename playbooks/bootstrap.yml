@@ -1,0 +1,39 @@
+---
+- name: Set up the playground VM
+  hosts: all
+  gather_facts: true
+
+  tasks:
+
+  - name: Update and upgrade apt-get repo and cache
+    become: true
+    apt: 
+      cache_valid_time: 3600
+      force_apt_get: yes
+      update_cache: yes
+      upgrade: dist
+
+  - name: Install deb packages
+    become: true
+    apt:
+      name:
+        - bash-completion
+        - bison
+        - dfc
+        - flex
+        - gdb
+        - git
+        - htop
+        - iperf
+        - iperf3
+        - libelf-dev
+        - libssl-dev
+        - linux-headers-{{ ansible_kernel }}
+        - make
+        - pkg-config
+        - python3
+        - python3-dev
+        - python3-pip
+        - sudo
+        - tmux
+      state: latest

@@ -12,17 +12,14 @@ RAM = 2048
 #  Provision Scripts  #
 #######################
 
-$bootstrap_ubuntu= <<-SCRIPT
-# Install dependencies
-apt-get update -qq
-DEBIAN_FRONTEND=noninteractive apt-get install -y sudo git pkg-config gdb bash-completion htop dfc \
-    build-essential autoconf libncurses5-dev \
-    libssl-dev bison flex libelf-dev linux-headers-$(uname -r)
-SCRIPT
-
-$bootstrap_devtools= <<-SCRIPT
-apt-get update -qq
-DEBIAN_FRONTEND=noninteractive apt-get install -y rustc golang
+$bootstrap= <<-SCRIPT
+DEBIAN_FRONTEND=noninteractive apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
+APT_PKGS=(
+  ansible
+  python3-pip
+)
+DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${APT_PKGS[@]}"
 SCRIPT
 
 Vagrant.configure("2") do |config|
@@ -30,10 +27,13 @@ Vagrant.configure("2") do |config|
   config.vm.define "playground" do |playground|
     playground.vm.box = "bento/ubuntu-20.04"
     playground.vm.hostname = "playground"
-    playground.vm.provision :shell, inline: $bootstrap_ubuntu
-    playground.vm.provision :shell, inline: $bootstrap_devtools
+    playground.vm.provision :shell, inline: $bootstrap
 
-    # VirtualBox-specific configuration
+    playground.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = "./playbooks/bootstrap.yml"
+      ansible.install = false
+    end
+
     playground.vm.provider "virtualbox" do |vb|
       vb.name = "playground"
       vb.memory = RAM
