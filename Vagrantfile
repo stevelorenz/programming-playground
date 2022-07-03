@@ -6,7 +6,7 @@
 ###############
 
 CPUS = 4
-RAM = 2048
+RAM = 4096
 
 BOX = "bento/ubuntu-20.04"
 BOX_LIBVIRT = "generic/ubuntu2004"
@@ -64,6 +64,9 @@ Vagrant.configure("2") do |config|
     playground.vm.provider "libvirt" do |libvirt, override|
       override.vm.provision :shell, inline: $setup_libvirt_vm_always, privileged: true, run: "always"
     end
+
+    playground.ssh.forward_agent = true
+    playground.ssh.forward_x11 = true
 
   end
 end

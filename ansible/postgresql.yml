@@ -1,0 +1,42 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+    postgresql_version: "12"
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/main"
+
+  tasks:
+    - name: "Update apt repo"
+      become: true
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: "Install Postgresql related packages"
+      become: true
+      apt:
+        name:
+          - libpq-dev
+          - pgadmin3
+          - postgresql
+          - postgresql-client
+          - postgresql-contrib
+          - python3-psycopg2
+        state: latest
+
+    - name: "Start and enable the Postgresql service"
+      become: true
+      systemd:
+        name: postgresql
+        state: started
+        enabled: yes 
+
+    - name: "Create postgres test database"
+      # MARK: postgresql local connection uses peer authentication instead of md5 (username+password)
+      # So become the user 'postgres' is required to perform any operation.
+      become: true
+      become_user: postgres
+      postgresql_db:
+        name: testdb
