@@ -1,5 +1,5 @@
 -- Create a table named teachers with six columns
-CREATE TABLE teachers (
+CREATE TABLE IF NOT EXISTS teachers (
     id bigserial,
     first_name varchar(25),
     last_name varchar(50),
