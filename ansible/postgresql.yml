@@ -23,6 +23,7 @@
           - postgresql
           - postgresql-client
           - postgresql-contrib
+          - postgresql-plpython3-12
           - python3-psycopg2
         state: latest
 

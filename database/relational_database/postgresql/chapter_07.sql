@@ -153,12 +153,21 @@ CREATE TABLE IF NOT EXISTS new_york_addresses (
     street varchar(32),
     unit varchar(7),
     postcode varchar(5),
-    id integer CONSTRAINT new_york_key PRIMARY KEY
+    id integer CONSTRAINT new_york_key PRIMARY KEY -- The id has a index
 );
 
--- This import takes some time
+-- This import takes some time, more than 900,000 entires
 COPY new_york_addresses
 FROM '/tmp/city_of_new_york.csv'
 WITH (FORMAT CSV, HEADER);
+
+-- Benchmark queries for large table
+EXPLAIN ANALYZE SELECT * FROM new_york_addresses
+WHERE street = 'BROADWAY';
+
+-- Create a B-Tree index on the new_york_addresses table
+CREATE INDEX street_idx ON new_york_addresses (street);
+EXPLAIN ANALYZE SELECT * FROM new_york_addresses
+WHERE street = 'BROADWAY';
 
 DROP TABLE new_york_addresses;
