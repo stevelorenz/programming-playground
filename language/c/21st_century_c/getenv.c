@@ -1,0 +1,18 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(int argc, char *argv[]) {
+    char *repstext = getenv("reps");
+    int reps = repstext ? atoi(repstext) : 10;
+
+    char *msg = getenv("msg");
+    if (!msg) {
+        msg = "Hello.";
+    }
+
+    for (int i = 0; i < reps; ++i) {
+        printf("%s\n", msg);
+    }
+
+    return EXIT_SUCCESS;
+}
