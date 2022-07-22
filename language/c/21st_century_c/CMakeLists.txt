@@ -23,3 +23,8 @@ add_executable(getenv getenv.c)
 add_executable(gsl_erf gsl_erf.c)
 find_package(GSL REQUIRED)
 target_link_libraries(gsl_erf GSL::gsl GSL::gslcblas)
+
+###########
+#  Tests  #
+###########
+
