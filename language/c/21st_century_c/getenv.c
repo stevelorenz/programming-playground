@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[]) {
+int main() {
     char *repstext = getenv("reps");
     int reps = repstext ? atoi(repstext) : 10;
 
