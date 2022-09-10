@@ -20,7 +20,7 @@ endif()
 
 project(21stCenturyC 
 	VERSION 0.1
-	LANGUAGES C)
+	LANGUAGES C CXX)
 
 message("${Green}CMake version: ${CMAKE_VERSION}")
 message("${Green}Current shell: $ENV{SHELL}")
@@ -60,6 +60,9 @@ if(ipo_supported)
 	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION True)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH
+	"${CMAKE_SOURCE_DIR}/cmake/module")
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -82,6 +85,26 @@ else()
 	message(FATAL_ERROR "Failed to run the quick test")
 endif()
 
+##################
+#  Dependencies  #
+##################
+
+find_package(yaml-cpp REQUIRED)
+# ONLY use git submodule when yaml-cpp is NOT found in current system libraries
+if(NOT yaml-cpp_FOUND)
+	find_package(Git REQUIRED)
+	if(NOT Git_FOUND)
+		message(FATAL_ERROR "Git command not found! Can not use git submodule!")
+	endif()
+
+	message("${Red} yaml-cpp is not found! Init the git submodule")
+	execute_process(
+		COMMAND git submodule update --init -- extern/yaml-cpp
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	)
+	add_subdirectory(extern/yaml-cpp)
+endif()
+
 #######################
 #  Interface Targets  #
 #######################
@@ -102,6 +125,13 @@ target_compile_options(sanitizer_props INTERFACE
 ##############
 
 enable_testing()
+
+add_executable(test_cpp test_cpp.cpp)
+add_test(NAME test_cpp_test
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_cpp)
+target_link_libraries(test_cpp PRIVATE yaml-cpp)
+# Copy YAML file into the build directory
+configure_file(test_config.yaml test_config.yaml COPYONLY)
 
 add_executable(erf erf.c)
 target_link_libraries(erf m warning_props sanitizer_props)
@@ -190,6 +220,15 @@ function(MyFunction FirstArg)
 endfunction()
 
 MyFunction("Value1" "Value2")
+
+find_package(Protobuf QUIET)
+
+find_package(GTest QUIET)
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PQXX QUIET IMPORTED_TARGET libpqxx)
+find_package(PQXX REQUIRED)
+message("${Green}Found the library PQXX: " ${PQXX_FOUND})
 
 message("${Yellow}--------------------------------------------------------------------")
 message("")
