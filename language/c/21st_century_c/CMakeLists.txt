@@ -67,6 +67,10 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 SET(CMAKE_BUILD_TYPE "Debug")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
@@ -88,7 +92,9 @@ endif()
 ##################
 #  Dependencies  #
 ##################
+include(FetchContent)
 
+# yaml-cpp ---------------------------------------------------------------------
 find_package(yaml-cpp REQUIRED)
 # ONLY use git submodule when yaml-cpp is NOT found in current system libraries
 if(NOT yaml-cpp_FOUND)
@@ -104,6 +110,14 @@ if(NOT yaml-cpp_FOUND)
 	)
 	add_subdirectory(extern/yaml-cpp)
 endif()
+
+# GoogleTest -------------------------------------------------------------------
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG release-1.12.1
+)
+FetchContent_MakeAvailable(googletest)
 
 #######################
 #  Interface Targets  #
@@ -125,11 +139,14 @@ target_compile_options(sanitizer_props INTERFACE
 ##############
 
 enable_testing()
+configure_file(run_tests.sh run_tests.sh COPYONLY)
 
 add_executable(test_cpp test_cpp.cpp)
 add_test(NAME test_cpp_test
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_cpp)
-target_link_libraries(test_cpp PRIVATE yaml-cpp)
+target_link_libraries(test_cpp PRIVATE yaml-cpp GTest::gtest_main GTest::gmock)
+include(GoogleTest)
+gtest_discover_tests(test_cpp)
 # Copy YAML file into the build directory
 configure_file(test_config.yaml test_config.yaml COPYONLY)
 
