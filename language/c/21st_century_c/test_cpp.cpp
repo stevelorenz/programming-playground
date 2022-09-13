@@ -2,6 +2,8 @@
  * test.cpp
  */
 
+#include "test_cpp.h"
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <yaml-cpp/node/node.h>
@@ -11,8 +13,6 @@
 #include <iostream>
 #include <random>
 #include <string>
-
-#include "gmock/gmock.h"
 
 TEST(TEST_CPP, BasicAssertions) {
     // Expect two strings not to be equal.
@@ -36,40 +36,12 @@ TEST(TEST_CPP, YAML_CPP) {
  * Try to learn and use GMock mechanism provided by GTest ----------------------
  * */
 
-class RandomNumberGenerator {
-   public:
-    virtual int Get() = 0;
-    // The deconstructor MUST be virtual but I'm not sure about default...
-    virtual ~RandomNumberGenerator() = default;
-};
-
-class RandomNumberGeneratorMock : public RandomNumberGenerator {
-   public:
-    MOCK_METHOD(int, Get, (), (override));
-};
-
-class RandomNumberGeneratorMt19937 : public RandomNumberGenerator {
-   public:
-    int Get() override;
-};
-
 int RandomNumberGeneratorMt19937::Get() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(1, 6);
     return distrib(gen);
 }
-
-class Calc {
-   private:
-    RandomNumberGenerator* rng_;
-
-   public:
-    Calc(RandomNumberGenerator* rng);
-    int Sum(int a, int b);
-    int Multiply(int a, int b);
-    int AddRandomNumber(int a);
-};
 
 Calc::Calc(RandomNumberGenerator* rng) { rng_ = rng; }
 

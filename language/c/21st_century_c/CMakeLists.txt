@@ -71,12 +71,16 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-SET(CMAKE_BUILD_TYPE "Debug")
+# Set different compiler flags for debug and release modes
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	message("${Yellow}Debug mode is used!")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
-		-O0 \
-		-Wall -Wextra -Wpedantic -Werror \
-		-fsanitize=address -fsanitize=leak -fsanitize=undefined")
+	-O0 \
+	-Wall -Wextra -Wpedantic -Werror \
+	-fsanitize=address -fsanitize=leak -fsanitize=undefined")
+else()
+	message("${Yellow}Release mode is used!")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 endif()
 
 try_run(run_result compile_result
@@ -112,12 +116,16 @@ if(NOT yaml-cpp_FOUND)
 endif()
 
 # GoogleTest -------------------------------------------------------------------
-FetchContent_Declare(
-  googletest
-  GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG release-1.12.1
-)
-FetchContent_MakeAvailable(googletest)
+find_package(GTest REQUIRED)
+if(NOT GTest_FOUND)
+	# MARK: FetchContent could take a long time if your Internet connection to GitHub is bad... (e.g. in China mainland)
+	FetchContent_Declare(
+		googletest
+		GIT_REPOSITORY https://github.com/google/googletest.git
+		GIT_TAG release-1.12.1
+		)
+	FetchContent_MakeAvailable(googletest)
+endif()
 
 #######################
 #  Interface Targets  #
@@ -140,10 +148,21 @@ target_compile_options(sanitizer_props INTERFACE
 
 enable_testing()
 configure_file(run_tests.sh run_tests.sh COPYONLY)
+configure_file(run_cpack.sh run_cpack.sh COPYONLY)
 
 add_executable(test_cpp test_cpp.cpp)
 add_test(NAME test_cpp_test
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_cpp)
+# Use generator expression to make the target relocatable
+target_include_directories(test_cpp INTERFACE 
+	# BUILD_INTERFACE will only include for build stage
+	"$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/>"
+	# INSTALL_INTERFACE will only include for the install stage
+	"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
+set_target_properties(test_cpp PROPERTIES
+	PUBLIC_HEADER ./test_cpp.h
+)
 target_link_libraries(test_cpp PRIVATE yaml-cpp GTest::gtest_main GTest::gmock)
 include(GoogleTest)
 gtest_discover_tests(test_cpp)
@@ -180,6 +199,71 @@ add_custom_target(checksum ALL
 	BYPRODUCTS gsl_erf.ck)
 # Make sure that checksum is built AFTER gsl_erf is built
 add_dependencies(checksum gsl_erf)
+
+##############################
+#  Exports and Installation  #
+##############################
+
+set(EXPORT_DIR "${CMAKE_CURRENT_BINARY_DIR}/cmake")
+export(TARGETS test_cpp erf fibo
+	FILE "${EXPORT_DIR}/ExportTargets.cmake"
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+	"${CMAKE_CURRENT_BINARY_DIR}/TestCppConfigVersion.cmake"
+	COMPATIBILITY SameMajorVersion
+	)
+
+include(GNUInstallDirs)
+# I'm not sure if I use this install command correctly :see_no_evil:
+install(TARGETS test_cpp
+	EXPORT TestCppTargets
+	ARCHIVE
+	PUBLIC_HEADER
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/test_cpp
+)
+install(EXPORT TestCppTargets
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/test_cpp/cmake)
+
+install(FILES
+	"${CMAKE_CURRENT_SOURCE_DIR}/test_config.yaml"
+	# This should be prefix + share directory
+	DESTINATION ${CMAKE_INSTALL_DATADIR}
+)
+
+install(FILES "TestCppConfig.cmake"
+	"${CMAKE_CURRENT_BINARY_DIR}/TestCppConfigVersion.cmake"
+	DESTINATION ${CMAKE_INSTALL_LIBDIR}/test_cpp/cmake
+	)
+
+###################
+#  Documentation  #
+###################
+
+function(Doxygen input output)
+	find_package(Doxygen)
+	if (NOT DOXYGEN_FOUND)
+		message(FATAL_ERROR "Doxygen not found!")
+	endif()
+	set(DOXYGEN_GENERATE_HTML YES)
+	set(DOXYGEN_HTML_OUTPUT
+		${PROJECT_BINARY_DIR}/${output})
+	doxygen_add_docs(doxygen
+		${PROJECT_SOURCE_DIR}/${input}
+		COMMENT "Generate HTML documentation with Doxygen"
+		)
+endfunction()
+
+Doxygen("" doc)
+
+#####################
+#  CPack Packaging  #
+#####################
+
+set(CPACK_PACKAGE_VENDOR "Zuo Xiang")
+set(CPACK_PACKAGE_CONTACT "xianglinks@gmail.com")
+include(CPack)
 
 #######################
 #  Test CMake Itself  #
