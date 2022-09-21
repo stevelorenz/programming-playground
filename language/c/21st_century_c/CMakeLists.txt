@@ -77,7 +77,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 	-O0 \
 	-Wall -Wextra -Wpedantic -Werror \
-	-fsanitize=address -fsanitize=leak -fsanitize=undefined")
+	-Wno-unused \
+	-fsanitize=address -fsanitize=leak -fsanitize=undefined \
+	-pg")
 else()
 	message("${Yellow}Release mode is used!")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
@@ -127,6 +129,12 @@ if(NOT GTest_FOUND)
 	FetchContent_MakeAvailable(googletest)
 endif()
 
+# Glib -------------------------------------------------------------------------
+find_package(PkgConfig)
+pkg_search_module(GLIB REQUIRED glib-2.0)
+include_directories(${GLIB_INCLUDE_DIRS})
+link_directories(${GLIB_LIBRARY_DIRS})
+
 #######################
 #  Interface Targets  #
 #######################
@@ -136,6 +144,8 @@ target_compile_options(warning_props INTERFACE
 	-Wall -Wextra -Wpedantic
 )
 
+# Sanitizers are not included directly in CMAKE_C_FLAGS because even your own code works
+# perfectly with sanitizers, but the used dependencies may not work with sanitizers...
 add_library(sanitizer_props INTERFACE
 )
 target_compile_options(sanitizer_props INTERFACE
@@ -170,9 +180,10 @@ gtest_discover_tests(test_cpp)
 configure_file(test_config.yaml test_config.yaml COPYONLY)
 
 add_executable(erf erf.c)
-target_link_libraries(erf m warning_props sanitizer_props)
+target_link_libraries(erf m)
 # Try to use precompile headers
 target_precompile_headers(erf PRIVATE <math.h> <stdio.h>)
+target_link_libraries(erf)
 add_test(NAME erf_test
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/erf)
 
@@ -190,6 +201,31 @@ target_link_libraries(gsl_erf GSL::gsl GSL::gslcblas)
 add_test(NAME gsl_erf
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/gsl_erf)
 
+add_executable(stddev stddev.c)
+target_link_libraries(stddev m)
+add_test(NAME stddev
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/stddev)
+
+add_executable(test_gdb test_gdb.c)
+target_link_libraries(test_gdb ${GLIB_LIBRARIES})
+add_test(NAME test_gdb
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test_gdb)
+
+add_executable(dict_test dict_test.c)
+target_link_libraries(dict_test ${GLIB_LIBRARIES})
+add_test(NAME dict_test
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/dict_test)
+
+add_executable(structcopy structcopy.c)
+target_link_libraries(structcopy)
+add_test(NAME structcopy
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/structcopy)
+
+add_executable(noreturn noreturn.c)
+target_link_libraries(noreturn)
+
+add_executable(dynamic dynamic.c)
+target_link_libraries(dynamic m readline)
 
 add_custom_target(clean_stale_coverage_files ALL
 	COMMAND find ./ -name "*.gcda" -type f -delete)
