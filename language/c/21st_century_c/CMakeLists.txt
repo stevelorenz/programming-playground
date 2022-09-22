@@ -76,7 +76,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	message("${Yellow}Debug mode is used!")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 	-O0 \
-	-Wall -Wextra -Wpedantic -Werror \
+	-Wall -Wextra -Werror \
 	-Wno-unused \
 	-fsanitize=address -fsanitize=leak -fsanitize=undefined \
 	-pg")
@@ -157,8 +157,11 @@ target_compile_options(sanitizer_props INTERFACE
 ##############
 
 enable_testing()
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 configure_file(run_tests.sh run_tests.sh COPYONLY)
 configure_file(run_cpack.sh run_cpack.sh COPYONLY)
+
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/config.h.in" "${CMAKE_CURRENT_BINARY_DIR}/config.h")
 
 add_executable(test_cpp test_cpp.cpp)
 add_test(NAME test_cpp_test
@@ -226,6 +229,46 @@ target_link_libraries(noreturn)
 
 add_executable(dynamic dynamic.c)
 target_link_libraries(dynamic m readline)
+
+add_executable(uint uint.c)
+add_test(NAME uint
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/uint)
+
+add_executable(strtod strtod.c)
+target_include_directories(strtod PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+
+add_executable(curly curly.c)
+add_test(NAME curly
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/curly)
+
+add_executable(preprocess preprocess.c)
+target_link_libraries(preprocess m)
+add_test(NAME preprocess
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/preprocess)
+
+add_executable(sizesof sizesof.c)
+add_test(NAME sizesof
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sizesof)
+
+add_executable(constchange constchange.c)
+add_test(NAME constchange
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/constchange)
+
+add_executable(conststruct conststruct.c)
+add_test(NAME conststruct
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/conststruct)
+
+add_executable(sadstrings sadstrings.c)
+
+add_executable(getstrings getstrings.c)
+
+add_executable(asprintf asprintf.c)
+add_test(NAME asprintf
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/asprintf)
+
+add_executable(sasprintf sasprintf.c)
+add_test(NAME sasprintf
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sasprintf)
 
 add_custom_target(clean_stale_coverage_files ALL
 	COMMAND find ./ -name "*.gcda" -type f -delete)

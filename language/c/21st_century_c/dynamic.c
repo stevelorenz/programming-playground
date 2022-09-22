@@ -45,7 +45,7 @@ void compile_and_run() {
 
 	// Define the type of the function pointer
 	typedef double (*fn_type)(double);
-	fn_type f = dlsym(handle, "fn");
+	fn_type f = (fn_type)(dlsym(handle, "fn"));
 	assert(f != NULL);
 	printf("f(1)=%g\n", f(1));
 	printf("f(2)=%g\n", f(2));
