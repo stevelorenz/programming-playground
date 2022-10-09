@@ -1,5 +1,7 @@
 #![warn(rust_2018_idioms)]
 
+use std::str::FromStr;
+
 fn gcd(mut n: u64, mut m: u64) -> u64 {
     assert!(n != 0 && m != 0);
 
@@ -23,6 +25,23 @@ fn test_gcd() {
 }
 
 fn main() {
-    let ret = gcd(2, 4);
-    println!("The GCD of 2 and 4: {ret}");
+    println!("A simple GCD program");
+
+    let mut numbers: Vec<u64> = Vec::new();
+
+    for arg in std::env::args().skip(1) {
+        numbers.push(u64::from_str(&arg).expect("error passing the input argument."));
+    }
+
+    if numbers.len() == 0 {
+        eprintln!("Usage: gcd NUMBER...");
+        std::process::exit(1);
+    }
+
+    let mut d = numbers[0];
+    for m in &numbers[1..] {
+        d = gcd(d, *m);
+    }
+
+    println!("The common divisor of {:?} is {}", numbers, d);
 }
