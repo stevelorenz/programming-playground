@@ -29,10 +29,10 @@ if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
 	message(FATAL_ERROR "In-source builds are not allowed")
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	message("${Green}The system is Linux: ${CMAKE_SYSTEM_VERSION}! Great!")
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	message(FATAL_ERROR "Code has NOT been tested on Windows!")
 else()
-	message(FATAL_ERROR "Code is only tested on Linux!")
+	message("${Green}Current OS: ${CMAKE_SYSTEM_NAME}")
 endif()
 
 cmake_host_system_information(RESULT PROCESSOR_DESCRIPTION QUERY PROCESSOR_DESCRIPTION)
@@ -269,6 +269,19 @@ add_test(NAME asprintf
 add_executable(sasprintf sasprintf.c)
 add_test(NAME sasprintf
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/sasprintf)
+
+add_executable(varad varad.c)
+add_test(NAME varad
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/varad)
+
+add_executable(vectorize vectorize.c)
+add_test(NAME vectorize
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/vectorize)
+
+add_executable(papersize papersize.c)
+add_test(NAME papersize
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/papersize)
+
 
 add_custom_target(clean_stale_coverage_files ALL
 	COMMAND find ./ -name "*.gcda" -type f -delete)
