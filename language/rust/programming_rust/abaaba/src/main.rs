@@ -13,6 +13,7 @@ fn print_slice(n: &[u64]) {
 }
 
 fn test_ownership() -> () {
+    println!("{}", "test_ownership --------");
     let a: u32 = 1000;
     // let a: u32 = 100000000;
     let b: u32 = 2000;
@@ -216,7 +217,61 @@ fn show_table(table: &Table) {
     }
 }
 
+static mut STASH: &i32 = &128;
+
+// The lifetime annotation must be static here, because the p is assigned to
+// a variable STASH with the static lifetime!!!
+fn f<'a>(p: &'static i32) {
+    unsafe {
+        // The life time of p MUST outlive the static variable STASH.
+        STASH = p;
+    }
+}
+
+fn smallest<'a>(v: &'a [i32]) -> &'a i32 {
+    let mut s = &v[0];
+    for r in &v[1..] {
+        if *r < *s {
+            s = r;
+        }
+    }
+    return s;
+}
+
+struct S3<'a, 'b> {
+    x: &'a i32,
+    y: &'b i32,
+}
+
+fn sum_r_xy<'a, 'b, 'c>(r: &'a i32, s: S3<'b, 'c>) -> i32 {
+    return r + s.x + s.y;
+}
+
+struct StringTable {
+    elements: Vec<String>,
+}
+
+impl StringTable {
+    fn find_by_prefix<'a, 'b>(&'a self, prefix: &'b str) -> Option<&'a String> {
+        for i in 0..self.elements.len() {
+            if self.elements[i].starts_with(prefix) {
+                return Some(&self.elements[i]);
+            }
+        }
+        return None;
+    }
+}
+
+// The first mutable reference vec is a mutable access -> It is exclusive access
+// The second reference is a sharing/unmutable reference!
+fn extend(vec: &mut Vec<f64>, slice: &[f64]) -> () {
+    for element in slice {
+        vec.push(*element);
+    }
+}
+
 fn test_reference() -> () {
+    println!("{}", "test_reference --------");
     let mut table = Table::new();
     table.insert(
         "Gesualdo".to_string(),
@@ -239,10 +294,149 @@ fn test_reference() -> () {
     sort_works(&mut table);
     println!("After sort ------");
     show_table(&table);
+
+    let r;
+    {
+        let x = 1;
+        r = &x;
+    }
+    // ERROR:
+    // println!("{}", *r);
+
+    let parabola = [9, 4, 1, 0, 1, 4, 9];
+    let s = smallest(&parabola);
+    println!("The smallest value of the array: {:?} is {}", parabola, s);
+
+    struct S1<'a> {
+        r: &'a i32,
+    }
+
+    let s;
+    {
+        let x = 10;
+        s = S1 { r: &x };
+        assert_eq!(*s.r, 10);
+    }
+    // Bad! the x is already dropped, the s.r refer to a already dropped value.
+    // assert_eq!(*s.r, 10);
+
+    struct S2<'a, 'b> {
+        x: &'a i32,
+        y: &'b i32,
+    }
+
+    let x = 10;
+    let r;
+    {
+        let y = 20;
+        {
+            let s = S2 { x: &x, y: &y };
+            r = s.x;
+        }
+    }
+    println!("r: {}", r);
+
+    let mut wave: Vec<f64> = Vec::new();
+    let head = vec![0.0, 1.0];
+    let tail = [0.0, -1.0];
+
+    extend(&mut wave, &head);
+    extend(&mut wave, &tail);
+    assert_eq!(wave, vec![0.0, 1.0, 0.0, -1.0]);
+
+    // Error! This may trigger the iterator invalidation!!! Rust denies this at compile time.
+    // extend(&mut wave, &wave);
+
+    let x = 42;
+    let p = &x;
+    assert_eq!(*p, 42);
+    // This is impossible! Because there's a read-only reference to the x.
+    // x += 1;
+    assert_eq!(*p, 42);
+
     return ();
 }
+
+fn test_expression() -> () {
+    println!("{}", "test_expression --------");
+    for i in 0..3 {
+        print!("{}, ", i);
+    }
+    println!("");
+
+    for i in (std::ops::Range { start: 0, end: 3 }) {
+        print!("{}, ", i);
+    }
+    println!("");
+
+    let is_even = |x: u64| -> bool {
+        return x % 2 == 0;
+    };
+    assert_eq!(is_even(14), true);
+}
+
+use std::error::Error;
+use std::io::{stderr, Write};
+
+fn print_error(mut err: &dyn Error) {
+    let _ = writeln!(stderr(), "error: {}", err);
+
+    loop {
+        match err.source() {
+            Some(source) => {
+                let _ = writeln!(stderr(), "error: {}", err);
+                err = source;
+            }
+            _ => {
+                break;
+            }
+        }
+    }
+
+    // Use while let instead of loop
+    // while let Some(source) = err.source() {
+    //     let _ = writeln!(stderr(), "error: {}", err);
+    //     err = source;
+    // }
+}
+
+use std::io::BufRead;
+
+type GenericError = Box<dyn std::error::Error + Send + Sync + 'static>;
+type GenericResult<T> = Result<T, GenericError>;
+
+fn read_numbers(file: &mut dyn BufRead) -> GenericResult<Vec<i64>> {
+    let mut numbers = vec![];
+    for line_result in file.lines() {
+        let line = line_result?; // Read files can fail and lead to io::Error...
+        numbers.push(line.parse()?); // Parsing integers can also fail
+    }
+
+    Ok(numbers)
+}
+
+use std::fmt;
+
+#[derive(Debug, Clone)]
+struct JsonError {
+    message: String,
+    line: usize,
+    column: usize,
+}
+
+impl fmt::Display for JsonError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "{} ({}:{})", self.message, self.line, self.column)
+    }
+}
+
+impl std::error::Error for JsonError {}
+
+fn test_error_handling() -> () {}
 
 fn main() {
     test_ownership();
     test_reference();
+    test_expression();
+    test_error_handling();
 }
