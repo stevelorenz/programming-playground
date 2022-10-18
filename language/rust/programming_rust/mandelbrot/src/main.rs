@@ -110,7 +110,7 @@ fn render(
     }
 }
 
-use image::png::PNGEncoder;
+use image::png::PngEncoder;
 use image::ColorType;
 use std::fs::File;
 
@@ -120,15 +120,15 @@ fn write_image(
     filename: &str,
     pixels: &[u8],
     bounds: (usize, usize),
-) -> Result<(), std::io::Error> {
+) -> Result<(), image::ImageError> {
     let output = File::create(filename)?;
 
-    let encoder = PNGEncoder::new(output);
+    let encoder = PngEncoder::new(output);
     encoder.encode(
         &pixels,
         bounds.0 as u32,
         bounds.1 as u32,
-        ColorType::Gray(8),
+        ColorType::L8,
     )?;
 
     Ok(())

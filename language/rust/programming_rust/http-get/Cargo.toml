@@ -1,5 +1,5 @@
 [package]
-name = "abaaba"
+name = "http-get"
 version = "0.1.0"
 edition = "2018"
 
@@ -7,5 +7,4 @@ edition = "2018"
 
 [dependencies]
 
-colored = "2"
-rand = "0.8.5"
+reqwest = { version = "0.11", features=["blocking"] }

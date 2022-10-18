@@ -1,6 +1,5 @@
-#![allow(dead_code, unused_variables, unused_assignments)]
+#![allow(dead_code, unused_variables, unused_assignments, unused_imports)]
 
-use colored::*;
 use std::collections::HashMap;
 use std::rc::Rc;
 
@@ -12,8 +11,8 @@ fn print_slice(n: &[u64]) {
     }
 }
 
+#[test]
 fn test_ownership() -> () {
-    println!("{}", "test_ownership --------");
     let a: u32 = 1000;
     // let a: u32 = 100000000;
     let b: u32 = 2000;
@@ -43,7 +42,7 @@ fn test_ownership() -> () {
     let _e = match 't'.to_digit(10) {
         Some(v) => v,
         None => {
-            eprintln!("{}", "Can not convert 't' to digit!".red());
+            eprintln!("{}", "Can not convert 't' to digit!");
             0
         }
     };
@@ -270,8 +269,8 @@ fn extend(vec: &mut Vec<f64>, slice: &[f64]) -> () {
     }
 }
 
+#[test]
 fn test_reference() -> () {
-    println!("{}", "test_reference --------");
     let mut table = Table::new();
     table.insert(
         "Gesualdo".to_string(),
@@ -357,8 +356,8 @@ fn test_reference() -> () {
     return ();
 }
 
+#[test]
 fn test_expression() -> () {
-    println!("{}", "test_expression --------");
     for i in 0..3 {
         print!("{}, ", i);
     }
@@ -432,11 +431,315 @@ impl fmt::Display for JsonError {
 
 impl std::error::Error for JsonError {}
 
+#[test]
 fn test_error_handling() -> () {}
 
-fn main() {
-    test_ownership();
-    test_reference();
-    test_expression();
-    test_error_handling();
+use std::cmp::Ordering;
+fn compare(n: i32, m: i32) -> Ordering {
+    if n < m {
+        Ordering::Less
+    } else if n > m {
+        Ordering::Greater
+    } else {
+        Ordering::Equal
+    }
+}
+
+#[derive(Copy, Clone, Debug)]
+enum HttpStatus {
+    Ok = 200,
+    NotModified = 304,
+    NotFound = 404,
+}
+
+#[test]
+fn test_enum() -> () {
+    use std::mem::size_of;
+    assert_eq!(size_of::<Ordering>(), 1);
+    assert_eq!(size_of::<HttpStatus>(), 2);
+
+    assert_eq!(HttpStatus::Ok as i32, 200);
+}
+
+fn http_status_from_u32(n: u32) -> Option<HttpStatus> {
+    match n {
+        200 => Some(HttpStatus::Ok),
+        304 => Some(HttpStatus::NotModified),
+        404 => Some(HttpStatus::NotFound),
+        _ => None,
+    }
+}
+
+enum Json {
+    Null,
+    Boolen(bool),
+    Number(f64),
+    String(String),
+    Array(Vec<Json>),
+    Object(Box<HashMap<String, Json>>),
+}
+
+fn describe_point(x: i32, y: i32) -> &'static str {
+    match (x.cmp(&0), y.cmp(&0)) {
+        (Ordering::Equal, Ordering::Equal) => "at the original",
+        (_, Ordering::Equal) => "on the x axis",
+        (Ordering::Equal, _) => "on the y axis",
+        (Ordering::Greater, Ordering::Greater) => "in the first quadrant",
+        _ => "somewhere else",
+    }
+}
+
+// Use the trait as a function argument.
+// This is actually dynamic dispatch/polymorphism, so dyn keyword is used here.
+fn say_hello_write(out: &mut dyn Write) -> std::io::Result<()> {
+    out.write_all(b"hello world\n")?;
+    return out.flush();
+}
+
+// Trait can be used as bound/limitation of a generic type T.
+fn min<T: Ord>(value1: T, value2: T) -> T {
+    if value1 < value2 {
+        return value1;
+    }
+    return value2;
+}
+
+#[test]
+fn test_traits() {
+    use std::fs::File;
+    let mut local_file = File::create("/tmp/hello.txt").expect("Failed to open file");
+    say_hello_write(&mut local_file).expect("Failed to write to file!");
+
+    let mut bytes = vec![];
+    say_hello_write(&mut bytes).unwrap();
+    assert_eq!(bytes, b"hello world\n");
+
+    assert_eq!(min(1, 2), 1);
+
+    let a: u64 = 1;
+    let b: u64 = 2;
+    assert_eq!(min(a, b), 1);
+
+    struct Dummy {
+        a: u64,
+        b: u64,
+    }
+
+    let c: Dummy = Dummy { a: 1, b: 4 };
+    let d: Dummy = Dummy { a: 2, b: 3 };
+    // Error: The Dummy struct doesn't implement the Ord Trait required by the Generic
+    // let e = min(c, d);
+}
+
+#[test]
+fn test_drop() {
+    struct Appellation {
+        name: String,
+        nicknames: Vec<String>,
+    }
+
+    use std::ops::Drop;
+
+    impl Drop for Appellation {
+        fn drop(&mut self) {
+            println!("Drop Appellation with name: {}", self.name);
+        }
+    }
+
+    let a = Appellation {
+        name: "Musterman".to_string(),
+        nicknames: vec!["Musterman".to_string()],
+    };
+}
+
+fn triangle(n: i32) -> i32 {
+    return (1..=n).fold(0, |sum, item| sum + item);
+}
+
+#[test]
+fn test_iterators() {
+    let v = vec!["a", "b", "c"];
+    for element in &v {}
+
+    // The vector implements the IntoIterator trait
+    let mut iterator = (&v).into_iter();
+    while let Some(element) = iterator.next() {
+        println!("{}", element);
+    }
+
+    // while true loop with break can be written as "while let" syntax in Rust
+    loop {
+        match iterator.next() {
+            Some(element) => println!("{}", element),
+            None => break,
+        }
+    }
+
+    use std::ffi::OsStr;
+    use std::path::Path;
+    // The iter method of a path return an iterator for paths.
+    let path = Path::new("./");
+    let mut iterator = path.iter();
+    _ = iterator.next();
+
+    use std::collections::BTreeSet;
+    let mut favorites = BTreeSet::new();
+    favorites.insert("A".to_string());
+    favorites.insert("B".to_string());
+
+    let mut it = favorites.into_iter();
+    assert_eq!(it.next(), Some("A".to_string()));
+    assert_eq!(it.next(), Some("B".to_string()));
+    assert_eq!(it.next(), None);
+
+    use rand::random;
+    use std::iter::from_fn;
+
+    const LEN_SIZE: usize = 1000;
+
+    let lengths: Vec<f64> = from_fn(|| Some((random::<f64>() - random::<f64>()).abs()))
+        .take(LEN_SIZE) // yield the first n elements
+        .collect();
+    assert_eq!(lengths.len(), LEN_SIZE);
+
+    use std::iter::FromIterator;
+    let mut outer = "Earth".to_string();
+    let inner = String::from_iter(outer.drain(1..4));
+    assert_eq!(outer, "Eh");
+    assert_eq!(inner, "art");
+
+    let text = " a \n b \n c \n d \n".to_string();
+    let v: Vec<&str> = text.lines().map(str::trim).collect(); // Convert an iterator to a vector
+    assert_eq!(v, ["a", "b", "c", "d"]);
+
+    let text = " a \n b \n c \n d \n".to_string();
+    // A chain of iterator adaptors work like a pipeline in Unix shell
+    let v: Vec<&str> = text.lines().map(str::trim).filter(|s| *s != "c").collect();
+    assert_eq!(v, ["a", "b", "d"]);
+
+    use std::str::FromStr;
+    let text = "1\nfrond .25 289\n3.1415 estuary\n";
+    for number in text
+        .split_whitespace()
+        .filter_map(|w| f64::from_str(w).ok())
+    {
+        println!("{:4.2}", number.sqrt());
+    }
+
+    use std::collections::BTreeMap;
+
+    let mut parks = BTreeMap::new();
+    parks.insert("Portland", vec!["Mt. Tabor Park", "Forest Park"]);
+    parks.insert("Kyoto", vec!["Tadasu-no-Mori Forest", "Maruyama Koen"]);
+
+    let all_parks: Vec<_> = parks.values().cloned().collect();
+    assert_eq!(
+        all_parks,
+        vec![
+            vec!["Tadasu-no-Mori Forest", "Maruyama Koen"],
+            vec!["Mt. Tabor Park", "Forest Park"],
+        ]
+    );
+
+    let all_parks: Vec<_> = parks.values().flatten().cloned().collect();
+    assert_eq!(
+        all_parks,
+        vec![
+            "Tadasu-no-Mori Forest",
+            "Maruyama Koen",
+            "Mt. Tabor Park",
+            "Forest Park",
+        ]
+    );
+
+    let message = "To: jimb\r\n\
+                   From: superego <editor@orilly.com>\r\n\
+                   \r\n\
+                   Blablablabla";
+    let mut headers: Vec<String> = Vec::new();
+    for header in message.lines().take_while(|l| !l.is_empty()) {
+        headers.push(header.to_string());
+    }
+
+    assert_eq!(
+        headers,
+        vec![
+            "To: jimb".to_string(),
+            "From: superego <editor@orilly.com>".to_string()
+        ]
+    );
+
+    let v: Vec<i32> = (1..4).chain(vec![20, 30, 40]).collect();
+    assert_eq!(v, [1, 2, 3, 20, 30, 40]);
+
+    let v: Vec<_> = (0..).zip("ABCD".chars()).collect();
+    assert_eq!(v, vec![(0, 'A'), (1, 'B'), (2, 'C'), (3, 'D')]);
+
+    struct I32Range {
+        start: i32,
+        end: i32,
+    }
+
+    impl Iterator for I32Range {
+        type Item = i32;
+
+        fn next(&mut self) -> Option<i32> {
+            if self.start >= self.end {
+                return None;
+            }
+            let result = Some(self.start);
+            self.start += 1;
+            return result;
+        }
+    }
+
+    let mut pi = 0.0;
+    let mut numerator = 1.0;
+
+    for k in (I32Range { start: 0, end: 14 }) {
+        pi += numerator / (2 * k + 1) as f64;
+        numerator /= -3.0;
+    }
+    pi *= f64::sqrt(12.0);
+    assert_eq!(pi as f32, std::f32::consts::PI);
+}
+
+#[test]
+fn test_collections() {
+    assert_eq!(
+        [[1, 2], [3, 4], [5, 6]].join(&0),
+        vec![1, 2, 0, 3, 4, 0, 5, 6]
+    )
+}
+
+fn option_to_raw<T>(opt: Option<&T>) -> *const T {
+    match opt {
+        None => std::ptr::null(),
+        Some(r) => r as *const T,
+    }
+}
+
+#[test]
+fn test_unsafe() {
+    let mut x = 10;
+    let ptr_x = &mut x as *mut i32; // Convert the reference to raw pointer
+
+    let y = Box::new(20);
+    let ptr_y = &(*y) as *const i32;
+
+    unsafe {
+        *ptr_x = *ptr_x + *ptr_y;
+        assert_eq!(*ptr_x, 30);
+    }
+    assert_eq!(x, 30);
+
+    assert_eq!(option_to_raw::<i32>(None), std::ptr::null());
+
+    let trucks = vec!["garbage truck", "dump truck", "moonstruck"];
+    let first: *const &str = &trucks[0];
+    let last: *const &str = &trucks[2];
+
+    assert_eq!(unsafe { last.offset_from(first) }, 2);
+    assert_eq!(unsafe { first.offset_from(last) }, -2);
+    assert_eq!(unsafe { *(first.add(2)) }, unsafe { *last });
 }
