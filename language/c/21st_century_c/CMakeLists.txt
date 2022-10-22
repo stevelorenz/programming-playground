@@ -73,16 +73,28 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Set different compiler flags for debug and release modes
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	message("${Yellow}Debug mode is used!")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
-	-O0 \
-	-Wall -Wextra -Werror \
-	-Wno-unused \
-	-fsanitize=address -fsanitize=leak -fsanitize=undefined \
-	-pg")
+	message("${Yellow}Debug mode is used!!!")
+	if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+		message("${Yellow}Enable sanitizers on Linux")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+		-O0 \
+		-Wall -Wextra -Werror \
+		-Wno-unused \
+		-fsanitize=address -fsanitize=leak -fsanitize=undefined \
+		-Wno-dev \
+		-pg")
+	else()
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+		-O0 \
+		-Wno-unused \
+		-Wno-dev \
+		-pg")
+	endif()
 else()
 	message("${Yellow}Release mode is used!")
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+	-O3 \
+	-Wno-dev")
 endif()
 
 try_run(run_result compile_result
@@ -101,7 +113,7 @@ endif()
 include(FetchContent)
 
 # yaml-cpp ---------------------------------------------------------------------
-find_package(yaml-cpp REQUIRED)
+find_package(yaml-cpp)
 # ONLY use git submodule when yaml-cpp is NOT found in current system libraries
 if(NOT yaml-cpp_FOUND)
 	find_package(Git REQUIRED)
@@ -109,7 +121,6 @@ if(NOT yaml-cpp_FOUND)
 		message(FATAL_ERROR "Git command not found! Can not use git submodule!")
 	endif()
 
-	message("${Red} yaml-cpp is not found! Init the git submodule")
 	execute_process(
 		COMMAND git submodule update --init -- extern/yaml-cpp
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
@@ -118,7 +129,7 @@ if(NOT yaml-cpp_FOUND)
 endif()
 
 # GoogleTest -------------------------------------------------------------------
-find_package(GTest REQUIRED)
+find_package(GTest)
 if(NOT GTest_FOUND)
 	# MARK: FetchContent could take a long time if your Internet connection to GitHub is bad... (e.g. in China mainland)
 	FetchContent_Declare(
@@ -134,6 +145,11 @@ find_package(PkgConfig)
 pkg_search_module(GLIB REQUIRED glib-2.0)
 include_directories(${GLIB_INCLUDE_DIRS})
 link_directories(${GLIB_LIBRARY_DIRS})
+# Not sure why, but include ${GLIB_INCLUDE_DIRS} does not include the glib installed
+# by homebrew on macOS... So I added it manually.
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	include_directories("/opt/homebrew/include")
+endif()
 
 #######################
 #  Interface Targets  #
@@ -413,15 +429,6 @@ function(MyFunction FirstArg)
 endfunction()
 
 MyFunction("Value1" "Value2")
-
-find_package(Protobuf QUIET)
-
-find_package(GTest QUIET)
-
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(PQXX QUIET IMPORTED_TARGET libpqxx)
-find_package(PQXX REQUIRED)
-message("${Green}Found the library PQXX: " ${PQXX_FOUND})
 
 message("${Yellow}--------------------------------------------------------------------")
 message("")
