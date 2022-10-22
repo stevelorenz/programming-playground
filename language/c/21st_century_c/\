@@ -86,12 +86,14 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 		-O0 \
 		-Wno-unused \
+		-Wno-dev \
 		-pg")
 	endif()
 else()
 	message("${Yellow}Release mode is used!")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
-	-O3")
+	-O3 \
+	-Wno-dev")
 endif()
 
 try_run(run_result compile_result
@@ -298,8 +300,7 @@ add_test(NAME papersize
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/papersize)
 
 add_executable(show_tree show_tree.c process_dir.c)
-add_test(NAME show_tree
-	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/show_tree)
+
 
 add_custom_target(clean_stale_coverage_files ALL
 	COMMAND find ./ -name "*.gcda" -type f -delete)
