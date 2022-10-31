@@ -1,6 +1,6 @@
 #include "process_dir.h"
 
-#include <sys/dirent.h>
+#include <dirent.h>
 #define _GNU_SOURCE	 // cause stdio.h to include asprintf
 #include <dirent.h>	 //struct dirent
 #include <stdio.h>	 //asprintf

@@ -301,6 +301,32 @@ add_executable(show_tree show_tree.c process_dir.c)
 add_test(NAME show_tree
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/show_tree)
 
+add_executable(dict_use dict_use.c dict.c keyval.c)
+add_test(NAME dict_use
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/dict_use)
+
+add_executable(print_methods print_methods.c)
+add_test(NAME print_methods
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/print_methods)
+
+add_executable(print_dispatch print_dispatch.c)
+add_test(NAME print_dispatch
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/print_dispatch)
+
+add_executable(print_vtable_use print_vtable_use.c print_vtable.c)
+target_link_libraries(print_vtable_use ${GLIB_LIBRARIES})
+add_test(NAME print_vtable_use
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/print_vtable_use)
+
+add_executable(string_utilities string_utilities.c)
+target_compile_definitions(string_utilities PUBLIC test_ok_array)
+target_link_libraries(string_utilities ${GLIB_LIBRARIES})
+
+add_executable(cetology cetology.c string_utilities.c fstr.c)
+target_link_libraries(cetology ${GLIB_LIBRARIES})
+add_test(NAME cetology
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/cetology)
+
 add_custom_target(clean_stale_coverage_files ALL
 	COMMAND find ./ -name "*.gcda" -type f -delete)
 
@@ -309,6 +335,19 @@ add_custom_target(checksum ALL
 	BYPRODUCTS gsl_erf.ck)
 # Make sure that checksum is built AFTER gsl_erf is built
 add_dependencies(checksum gsl_erf)
+
+###################
+#  On Linux Only  #
+###################
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+
+# OpenMP -----------------------------------------------------------------------
+# MARK: Currently (2022.11.01), it is not easy to install OpenMP with homebrew
+# on macOS 13 and use CMake to auto find the OpenMP library... So make this part Linux-only...
+find_package(OpenMP REQUIRED)
+
+endif()
 
 ##############################
 #  Exports and Installation  #
