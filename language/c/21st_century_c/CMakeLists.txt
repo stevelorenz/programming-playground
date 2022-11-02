@@ -150,6 +150,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 	include_directories("/opt/homebrew/include")
 endif()
 
+# OpenMP -----------------------------------------------------------------------
+# MARK: On macOS 13 with M1 chip, find_package does not work for ARM-version of libomp installed
+# directly via homebrew. The libomp need to be compiled from source code.
+find_package(OpenMP REQUIRED)
+
+# Pthread ----------------------------------------------------------------------
+find_package(Threads REQUIRED)
+
+# Curl -------------------------------------------------------------------------
+find_package(CURL REQUIRED)
+
+# libxml2 ----------------------------------------------------------------------
+find_package(LibXml2 REQUIRED)
+
 #######################
 #  Interface Targets  #
 #######################
@@ -166,6 +180,9 @@ add_library(sanitizer_props INTERFACE
 target_compile_options(sanitizer_props INTERFACE
 	-fsanitize=address -fsanitize=leak -fsanitize=undefined
 )
+
+add_library(omp_common_deps INTERFACE)
+target_link_libraries(omp_common_deps INTERFACE OpenMP::OpenMP_C ${GLIB_LIBRARIES})
 
 ##############
 #  Examples  #
@@ -327,6 +344,34 @@ target_link_libraries(cetology ${GLIB_LIBRARIES})
 add_test(NAME cetology
 	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/cetology)
 
+add_executable(mmap mmap.c)
+add_test(NAME mmap
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/mmap)
+
+add_executable(openmp_wc openmp_wc.c string_utilities.c)
+target_link_libraries(openmp_wc omp_common_deps)
+add_test(NAME openmp_wc
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/openmp_wc ./CMakeCache.txt)
+
+add_executable(mapreduce_wc mapreduce_wc.c string_utilities.c)
+target_link_libraries(mapreduce_wc omp_common_deps)
+add_test(NAME mapreduce_wc
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/mapreduce_wc ./CMakeCache.txt)
+
+add_executable(openmp_atoms openmp_atoms.c)
+target_link_libraries(openmp_atoms omp_common_deps)
+add_test(NAME openmp_atoms
+	COMMAND ${CMAKE_CURRENT_BINARY_DIR}/openmp_atoms)
+
+add_executable(pthread_factors pthread_factors.c)
+target_link_libraries(pthread_factors omp_common_deps)
+
+add_executable(c_factors c_factors.c)
+target_link_libraries(c_factors PRIVATE Threads::Threads)
+
+add_executable(nyt_feed nyt_feed.c)
+target_link_libraries(nyt_feed LibXml2::LibXml2 CURL::libcurl)
+
 add_custom_target(clean_stale_coverage_files ALL
 	COMMAND find ./ -name "*.gcda" -type f -delete)
 
@@ -335,19 +380,6 @@ add_custom_target(checksum ALL
 	BYPRODUCTS gsl_erf.ck)
 # Make sure that checksum is built AFTER gsl_erf is built
 add_dependencies(checksum gsl_erf)
-
-###################
-#  On Linux Only  #
-###################
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-
-# OpenMP -----------------------------------------------------------------------
-# MARK: Currently (2022.11.01), it is not easy to install OpenMP with homebrew
-# on macOS 13 and use CMake to auto find the OpenMP library... So make this part Linux-only...
-find_package(OpenMP REQUIRED)
-
-endif()
 
 ##############################
 #  Exports and Installation  #

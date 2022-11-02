@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern char error_mode;
+// Set this to 's' to stop the program on an error (abort).
+// Otherwise, functions take error_action on failure.
+char error_mode;
 
 #define PRINT_ERROR_MODE printf("Current error mode: %c\n", error_mode)
 
