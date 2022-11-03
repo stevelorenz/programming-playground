@@ -2,14 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void *thread_body(void *args)
-{
+void *thread_body(void *args) {
 	printf("Hello World from the first thread.\n");
 	return NULL;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	pthread_t thread;
 	int result;
 	result = pthread_create(&thread, NULL, thread_body, NULL);

@@ -1,19 +1,17 @@
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <calc_service.h>
+#include <cmocka.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-
-#include <calc_service.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define EPSILON 0.000001
 
 struct calc_service_t *svc = NULL;
 
-void calc_service__add_without_memory(void **state)
-{
+void calc_service__add_without_memory(void **state) {
 	calc_service_constructor(svc);
 	calc_service_reset_mem(svc);
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
@@ -22,8 +20,7 @@ void calc_service__add_without_memory(void **state)
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
 }
 
-void calc_service__add_with_memory(void **state)
-{
+void calc_service__add_with_memory(void **state) {
 	calc_service_constructor(svc);
 	calc_service_reset_mem(svc);
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
@@ -35,8 +32,7 @@ void calc_service__add_with_memory(void **state)
 	assert_float_equal(-1, calc_service_get_mem(svc), EPSILON);
 }
 
-void calc_service__sub_without_memory(void **state)
-{
+void calc_service__sub_without_memory(void **state) {
 	calc_service_constructor(svc);
 	calc_service_reset_mem(svc);
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
@@ -45,8 +41,7 @@ void calc_service__sub_without_memory(void **state)
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
 }
 
-void calc_service__sub_with_memory(void **state)
-{
+void calc_service__sub_with_memory(void **state) {
 	calc_service_constructor(svc);
 	calc_service_reset_mem(svc);
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
@@ -58,8 +53,7 @@ void calc_service__sub_with_memory(void **state)
 	assert_float_equal(calc_service_get_mem(svc), -3.6, EPSILON);
 }
 
-void calc_service__mul_without_memory(void **state)
-{
+void calc_service__mul_without_memory(void **state) {
 	calc_service_constructor(svc);
 	calc_service_reset_mem(svc);
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
@@ -68,8 +62,7 @@ void calc_service__mul_without_memory(void **state)
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
 }
 
-void calc_service__mul_with_memory(void **state)
-{
+void calc_service__mul_with_memory(void **state) {
 	calc_service_constructor(svc);
 	calc_service_reset_mem(svc);
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
@@ -84,8 +77,7 @@ void calc_service__mul_with_memory(void **state)
 	assert_float_equal(calc_service_get_mem(svc), 5.76, EPSILON);
 }
 
-void calc_service__div(void **state)
-{
+void calc_service__div(void **state) {
 	calc_service_constructor(svc);
 	calc_service_reset_mem(svc);
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
@@ -96,8 +88,7 @@ void calc_service__div(void **state)
 	assert_float_equal(0.0, calc_service_get_mem(svc), EPSILON);
 }
 
-void calc_service__div_by_zero(void **state)
-{
+void calc_service__div_by_zero(void **state) {
 	calc_service_constructor(svc);
 	double result = 0.0;
 	int status = calc_service_div(svc, -7.81, 0.0, &result);
@@ -105,38 +96,33 @@ void calc_service__div_by_zero(void **state)
 	assert_float_equal(result, 0.0, EPSILON);
 }
 
-int setup(void **state)
-{
+int setup(void **state) {
 	svc = calc_service_new();
 	return 0;
 }
 
-int teardown(void **state)
-{
+int teardown(void **state) {
 	calc_service_destructor(svc);
 	calc_service_delete(svc);
 	return 0;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(
-			calc_service__add_without_memory, setup, teardown),
-		cmocka_unit_test_setup_teardown(calc_service__add_with_memory,
-						setup, teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_service__sub_without_memory, setup, teardown),
-		cmocka_unit_test_setup_teardown(calc_service__sub_with_memory,
-						setup, teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_service__mul_without_memory, setup, teardown),
-		cmocka_unit_test_setup_teardown(calc_service__mul_with_memory,
-						setup, teardown),
-		cmocka_unit_test_setup_teardown(calc_service__div, setup,
-						teardown),
-		cmocka_unit_test_setup_teardown(calc_service__div_by_zero,
-						setup, teardown)
-	};
+		cmocka_unit_test_setup_teardown(calc_service__add_without_memory, setup,
+										teardown),
+		cmocka_unit_test_setup_teardown(calc_service__add_with_memory, setup,
+										teardown),
+		cmocka_unit_test_setup_teardown(calc_service__sub_without_memory, setup,
+										teardown),
+		cmocka_unit_test_setup_teardown(calc_service__sub_with_memory, setup,
+										teardown),
+		cmocka_unit_test_setup_teardown(calc_service__mul_without_memory, setup,
+										teardown),
+		cmocka_unit_test_setup_teardown(calc_service__mul_with_memory, setup,
+										teardown),
+		cmocka_unit_test_setup_teardown(calc_service__div, setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_service__div_by_zero, setup,
+										teardown)};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

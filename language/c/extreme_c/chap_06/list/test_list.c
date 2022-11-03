@@ -1,6 +1,6 @@
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 
 #include "list.h"
 
@@ -11,8 +11,7 @@
  *	- 0 on success.
  *	- -1 if can not get any element in the source list.
  */
-int list_reverse(struct list_t *source, struct list_t *dest)
-{
+int list_reverse(struct list_t *source, struct list_t *dest) {
 	int i = 0;
 	int item = 0;
 	list_clear(dest);
@@ -28,8 +27,7 @@ int list_reverse(struct list_t *source, struct list_t *dest)
 	return 0;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct list_t *list1;
 	struct list_t *list2;
 

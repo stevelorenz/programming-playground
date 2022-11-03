@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "player.h"
 #include "gun.h"
+#include "player.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct player_t *player;
 	struct gun_t *gun;
 

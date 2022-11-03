@@ -7,37 +7,31 @@
 // @lc code=start
 
 #include <algorithm>
-#include <vector>
 #include <string>
+#include <vector>
 
 using namespace std;
 
-class Solution
-{
-public:
-    bool isAnagram(string s, string t)
-    {
-        if (s.length() != t.length())
-        {
-            return false;
-        }
+class Solution {
+   public:
+	bool isAnagram(string s, string t) {
+		if (s.length() != t.length()) {
+			return false;
+		}
 
-        vector<int> counts(26, 0);
+		vector<int> counts(26, 0);
 
-        for (int i = 0; i < s.length(); i++)
-        {
-            counts[s[i] - 'a'] += 1;
-            counts[t[i] - 'a'] -= 1;
-        }
+		for (int i = 0; i < s.length(); i++) {
+			counts[s[i] - 'a'] += 1;
+			counts[t[i] - 'a'] -= 1;
+		}
 
-        for (int i = 0; i < 26; i++)
-        {
-            if (counts[i] > 0)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+		for (int i = 0; i < 26; i++) {
+			if (counts[i] > 0) {
+				return false;
+			}
+		}
+		return true;
+	}
 };
 // @lc code=end

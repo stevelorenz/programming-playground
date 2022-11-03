@@ -1,8 +1,7 @@
-#include <spdlog/spdlog.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/spdlog.h>
 
-int main()
-{
+int main() {
 	spdlog::set_level(spdlog::level::debug);
 	spdlog::set_pattern("[%H:%M:%S %z] [%n] [%^---%L---%$] [thread %t] %v");
 
@@ -15,11 +14,12 @@ int main()
 	auto console = spdlog::stdout_color_mt("console");
 	auto err_logger = spdlog::stderr_color_mt("stderr");
 	spdlog::get("console")->info(
-		"loggers can be retrieved from a global registry using the spdlog::get(logger_name)");
+		"loggers can be retrieved from a global registry using the "
+		"spdlog::get(logger_name)");
 
 	spdlog::enable_backtrace(32);
 	for (int i = 0; i < 3; i++) {
-		spdlog::debug("Backtrace message {}", i); // not logged yet..
+		spdlog::debug("Backtrace message {}", i);  // not logged yet..
 	}
 	spdlog::dump_backtrace();
 }

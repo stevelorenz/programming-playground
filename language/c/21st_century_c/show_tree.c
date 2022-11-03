@@ -21,7 +21,9 @@ void print_file(filestruct in) {
 	printf("| %s\n", in.name);
 }
 
-int main(int argc, char *argv[]) { 
+int main(int argc, char *argv[]) {
 	printf("Print the tree of current directory");
-	process_dir(.name=".", .directory_action=print_dir, .file_action=print_file);
-	return EXIT_SUCCESS; }
+	process_dir(.name = ".", .directory_action = print_dir,
+				.file_action = print_file);
+	return EXIT_SUCCESS;
+}

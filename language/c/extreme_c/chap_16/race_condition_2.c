@@ -4,8 +4,7 @@
 
 pthread_mutex_t mtx;
 
-void *thread_body_1(void *args)
-{
+void *thread_body_1(void *args) {
 	int *shared_var_ptr = (int *)args;
 	pthread_mutex_lock(&mtx);
 	(*shared_var_ptr)++;
@@ -14,8 +13,7 @@ void *thread_body_1(void *args)
 	return NULL;
 }
 
-void *thread_body_2(void *args)
-{
+void *thread_body_2(void *args) {
 	int *shared_var_ptr = (int *)args;
 	pthread_mutex_lock(&mtx);
 	(*shared_var_ptr) += 2;
@@ -24,8 +22,7 @@ void *thread_body_2(void *args)
 	return NULL;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	int shared_var = 0;
 	pthread_t thread1;
 	pthread_t thread2;

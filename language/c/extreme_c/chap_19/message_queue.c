@@ -7,8 +7,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	mqd_t mq;
 	struct mq_attr attr;
 
@@ -34,8 +33,7 @@ int main(int argc, char *argv[])
 		mq_send(mq, msg, strlen(msg) + 1, 0);
 		mq_close(mq);
 	} else {
-		mq = mq_open("/mq0", O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR,
-			     &attr);
+		mq = mq_open("/mq0", O_RDONLY | O_CREAT, S_IRUSR | S_IWUSR, &attr);
 		fprintf(stdout, "Parent: Read from child...\n");
 		char buf[32];
 		mq_receive(mq, buf, 32, NULL);

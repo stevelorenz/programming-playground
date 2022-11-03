@@ -15,15 +15,14 @@
 #define ENDLOOP }
 
 /* 3. using ## and # for macro variables */
-#define CMD(NAME)                                                              \
-	char NAME##_cmd[256] = "";                                             \
+#define CMD(NAME)              \
+	char NAME##_cmd[256] = ""; \
 	strcpy(NAME##_cmd, #NAME);
 
 /* 4. Variadic macro */
 #define LOG_ERROR(format, ...) fprintf(stderr, format, __VA_ARGS__)
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	int x = 2;
 	int y = 3;
 	int z = ADD(x, y);

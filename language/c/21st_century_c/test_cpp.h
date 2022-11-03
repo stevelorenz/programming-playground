@@ -16,30 +16,30 @@
 
 class RandomNumberGenerator {
    public:
-    virtual int Get() = 0;
-    // The deconstructor MUST be virtual but I'm not sure about default...
-    virtual ~RandomNumberGenerator() = default;
+	virtual int Get() = 0;
+	// The deconstructor MUST be virtual but I'm not sure about default...
+	virtual ~RandomNumberGenerator() = default;
 };
 
 class RandomNumberGeneratorMock : public RandomNumberGenerator {
    public:
-    MOCK_METHOD(int, Get, (), (override));
+	MOCK_METHOD(int, Get, (), (override));
 };
 
 class RandomNumberGeneratorMt19937 : public RandomNumberGenerator {
    public:
-    int Get() override;
+	int Get() override;
 };
 
 class Calc {
    private:
-    RandomNumberGenerator* rng_;
+	RandomNumberGenerator* rng_;
 
    public:
-    Calc(RandomNumberGenerator* rng);
-    int Sum(int a, int b);
-    int Multiply(int a, int b);
-    int AddRandomNumber(int a);
+	Calc(RandomNumberGenerator* rng);
+	int Sum(int a, int b);
+	int Multiply(int a, int b);
+	int AddRandomNumber(int a);
 };
 
 #endif /* !TEST_CPP_H */

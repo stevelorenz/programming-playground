@@ -12,38 +12,31 @@
 
 using namespace std;
 
-class Solution
-{
-public:
-    void dfs(vector<vector<int>> &isConnected, int row)
-    {
-        for (int col = 0; col < isConnected[row].size(); col++)
-        {
-            if (isConnected[row][col] == 1)
-            {
-                isConnected[row][col] = 2;
-                dfs(isConnected, col);
-            }
-        }
-    }
+class Solution {
+   public:
+	void dfs(vector<vector<int>> &isConnected, int row) {
+		for (int col = 0; col < isConnected[row].size(); col++) {
+			if (isConnected[row][col] == 1) {
+				isConnected[row][col] = 2;
+				dfs(isConnected, col);
+			}
+		}
+	}
 
-    int findCircleNum(vector<vector<int>> &isConnected)
-    {
-        int n = 0;
+	int findCircleNum(vector<vector<int>> &isConnected) {
+		int n = 0;
 
-        for (int i = 0; i < isConnected.size(); i++)
-        {
-            for (int j = 0; j < isConnected[0].size(); j++)
-            {
-                if (isConnected[i][j] == 1)
-                {
-                    n++;
-                    isConnected[i][j] = 2; // Mark current node as already selected.
-                    dfs(isConnected, j);
-                }
-            }
-        }
-        return n;
-    }
+		for (int i = 0; i < isConnected.size(); i++) {
+			for (int j = 0; j < isConnected[0].size(); j++) {
+				if (isConnected[i][j] == 1) {
+					n++;
+					isConnected[i][j] =
+						2;	// Mark current node as already selected.
+					dfs(isConnected, j);
+				}
+			}
+		}
+		return n;
+	}
 };
 // @lc code=end

@@ -21,23 +21,20 @@ using namespace std;
  *     ListNode(int x, ListNode *next) : val(x), next(next) {}
  * };
  */
-class Solution
-{
-public:
-    ListNode *reverseList(ListNode *head)
-    {
-        ListNode *prev = nullptr;
-        ListNode *next = nullptr;
+class Solution {
+   public:
+	ListNode *reverseList(ListNode *head) {
+		ListNode *prev = nullptr;
+		ListNode *next = nullptr;
 
-        while (head)
-        {
-            next = head->next;
-            head->next = prev;
-            prev = head;
-            head = next;
-        }
+		while (head) {
+			next = head->next;
+			head->next = prev;
+			prev = head;
+			head = next;
+		}
 
-        return prev;
-    }
+		return prev;
+	}
 };
 // @lc code=end

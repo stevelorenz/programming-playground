@@ -8,15 +8,9 @@
 /* Generic Macro */
 #define abs(x) _Generic((x), int : absi, double : absd)(x)
 
-int absi(int a)
-{
-	return a > 0 ? a : -a;
-}
+int absi(int a) { return a > 0 ? a : -a; }
 
-double absd(double a)
-{
-	return a > 0 ? a : -a;
-}
+double absd(double a) { return a > 0 ? a : -a; }
 
 /* Anonymous unions and structs */
 struct point_t {
@@ -29,8 +23,7 @@ struct point_t {
 	};
 };
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	/* Generic Macro */
 	int a = -2;
 	double b = -2.5;
@@ -43,7 +36,7 @@ int main(int argc, char *argv[])
 	p.data[1] = -5;
 	printf("Point using an anonymous structure: (%d, %d)\n", p.x, p.y);
 	printf("Point using byte array structure: (%d, %d)\n", p.data[0],
-	       p.data[1]);
+		   p.data[1]);
 
 	return 0;
 }

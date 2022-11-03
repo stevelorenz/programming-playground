@@ -17,9 +17,9 @@ typedef void (*print_fn_type)(textlist_s *in);
 void check_print_fn(print_fn_type pf);
 
 // Hash the address of the function to a function -> vtable
-#define print_hash_add(object, print_fn)                        \
-	{                                                           \
-		check_print_fn(print_fn);                               \
+#define print_hash_add(object, print_fn)                           \
+	{                                                              \
+		check_print_fn(print_fn);                                  \
 		g_hash_table_insert(print_fns, (object)->print, print_fn); \
 	}
 

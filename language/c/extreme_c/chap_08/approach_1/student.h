@@ -9,8 +9,8 @@ struct student_t *student;
 
 struct student_t *student_new();
 void student_init(struct student_t *student, const char *first_name,
-		  const char *last_name, unsigned int birth_year,
-		  const char *student_number, unsigned int passed_credits);
+				  const char *last_name, unsigned int birth_year,
+				  const char *student_number, unsigned int passed_credits);
 void student_destroy(struct student_t *student);
 
 void student_get_student_number(struct student_t *student, char *result);

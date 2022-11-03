@@ -4,8 +4,7 @@
 #include "person.h"
 #include "student.h"
 
-int main(void)
-{
+int main(void) {
 	struct person_t *person;
 	struct student_t *student;
 	char first_name[32];

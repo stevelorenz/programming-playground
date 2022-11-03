@@ -1,24 +1,21 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <limits.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-void *thread_body_1(void *arg)
-{
+void *thread_body_1(void *arg) {
 	int local_var = 0;
 	printf("Thread 1 > Stack Address: %p\n", (void *)&local_var);
 	return NULL;
 }
 
-void *thread_body_2(void *arg)
-{
+void *thread_body_2(void *arg) {
 	int local_var = 0;
 	printf("Thread 2 > Stack Address: %p\n", (void *)&local_var);
 	return NULL;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	// The allocated buffer should have a minimum size to be used as the
 	// stack region of a thread.
 	size_t buffer_len = PTHREAD_STACK_MIN + 100;

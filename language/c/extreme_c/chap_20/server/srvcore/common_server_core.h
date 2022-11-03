@@ -11,7 +11,7 @@ struct client_addr_t;
 struct client_context_t;
 
 typedef void (*write_resp_func_t)(struct client_context_t *,
-				  struct calc_proto_resp_t *);
+								  struct calc_proto_resp_t *);
 
 struct client_context_t {
 	struct client_addr_t *addr;

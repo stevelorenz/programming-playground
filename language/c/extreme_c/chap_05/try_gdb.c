@@ -1,5 +1,4 @@
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	char arr[4];
 	arr[0] = 'A';
 	arr[1] = 'B';

@@ -5,8 +5,8 @@
 #ifndef COMMON_CLIENT_CORE_H
 #define COMMON_CLIENT_CORE_H
 
-#include <calc_proto_ser.h>
 #include <calc_proto_req.h>
+#include <calc_proto_ser.h>
 
 struct context_t {
 	int sd;
@@ -22,6 +22,6 @@ void on_error(void *obj, int req_id, int error_code);
 void on_response(void *obj, struct calc_proto_resp_t resp);
 
 void parse_client_input(char *buf, struct calc_proto_req_t *req, int *brk,
-			int *cnt);
+						int *cnt);
 
 #endif /* !COMMON_CLIENT_CORE_H */

@@ -1,12 +1,10 @@
-#include <string>
-#include <iostream>
-
 #include <boost/algorithm/string.hpp>
+#include <iostream>
+#include <string>
 
 namespace ba = boost::algorithm;
 
-int main()
-{
+int main() {
 	// std::string is just an array of bytes...
 	std::string s = "a simple string";
 	std::cout << ba::to_upper_copy(s) << std::endl;

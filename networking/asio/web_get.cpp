@@ -3,25 +3,23 @@
  */
 
 #include <array>
+#include <boost/asio/buffer.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/ip/tcp.hpp>
+#include <boost/asio/write.hpp>
+#include <iostream>
 #include <memory>
 #include <string>
-#include <iostream>
-
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/write.hpp>
-#include <boost/asio/buffer.hpp>
-#include <boost/asio/ip/tcp.hpp>
 
 using namespace boost::asio;
 
 io_context iocontext;
-ip::tcp::resolver tcp_resolver{ iocontext };
-ip::tcp::socket tcp_socket{ iocontext };
+ip::tcp::resolver tcp_resolver{iocontext};
+ip::tcp::socket tcp_socket{iocontext};
 std::array<char, 4096> bytes;
 
 void read_handler(const boost::system::error_code &ec,
-		  std::size_t bytes_transferred)
-{
+				  std::size_t bytes_transferred) {
 	if (not ec) {
 		std::cout.write(bytes.data(), bytes_transferred);
 		tcp_socket.async_read_some(buffer(bytes), read_handler);
@@ -30,8 +28,7 @@ void read_handler(const boost::system::error_code &ec,
 	}
 }
 
-void connect_handler(const boost::system::error_code &ec)
-{
+void connect_handler(const boost::system::error_code &ec) {
 	if (not ec) {
 		std::string req =
 			"GET / HTTP/1.1\r\nHost: theboostcpplibraries.com\r\n\r\n";
@@ -39,13 +36,12 @@ void connect_handler(const boost::system::error_code &ec)
 		tcp_socket.async_read_some(buffer(bytes), read_handler);
 	} else {
 		std::cerr << "Failed to connect to the server: " << ec.message()
-			  << std::endl;
+				  << std::endl;
 	}
 }
 
 void resolve_handler(const boost::system::error_code &ec,
-		     ip::tcp::resolver::iterator it)
-{
+					 ip::tcp::resolver::iterator it) {
 	if (not ec) {
 		// Connect to the resolved address.
 		tcp_socket.async_connect(*it, connect_handler);
@@ -54,9 +50,8 @@ void resolve_handler(const boost::system::error_code &ec,
 	}
 }
 
-int main()
-{
-	ip::tcp::resolver::query q{ "theboostcpplibraries.com", "80" };
+int main() {
+	ip::tcp::resolver::query q{"theboostcpplibraries.com", "80"};
 	tcp_resolver.async_resolve(q, resolve_handler);
 	iocontext.run();
 }

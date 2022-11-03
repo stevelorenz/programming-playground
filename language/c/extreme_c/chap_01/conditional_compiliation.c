@@ -2,8 +2,7 @@
 
 #define CONDITION
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 #ifdef CONDITION
 	int i = 0;
 	i++;

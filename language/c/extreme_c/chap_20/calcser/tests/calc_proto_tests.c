@@ -1,12 +1,11 @@
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <calc_proto_ser.h>
+#include <cmocka.h>
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
-#include <cmocka.h>
-
-#include <calc_proto_ser.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -22,8 +21,7 @@ bool_t resp_cb_called;
 
 struct calc_proto_ser_t *ser = NULL;
 
-void req_cb(void *context, struct calc_proto_req_t req)
-{
+void req_cb(void *context, struct calc_proto_req_t req) {
 	req_cb_called = TRUE;
 	assert_int_equal(req.id, 1300);
 	assert_int_equal(req.method, GETMEM);
@@ -31,22 +29,19 @@ void req_cb(void *context, struct calc_proto_req_t req)
 	assert_float_equal(req.operand2, 45.3, 0.01);
 }
 
-void resp_cb(void *context, struct calc_proto_resp_t resp)
-{
+void resp_cb(void *context, struct calc_proto_resp_t resp) {
 	resp_cb_called = TRUE;
 	assert_int_equal(resp.req_id, 1245);
 	assert_int_equal(resp.status, expected_status);
 	assert_float_equal(resp.result, -104.891, 0.01);
 }
 
-void error_cb(void *context, int ref_id, int error_code)
-{
+void error_cb(void *context, int ref_id, int error_code) {
 	err_cb_called = TRUE;
 	assert_int_equal(error_code, expected_error_code);
 }
 
-void calc_server_deserialize__long_request(void **state)
-{
+void calc_server_deserialize__long_request(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 10);
 	char req[] = "1300#GETMEM#12.3#45.3$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -59,8 +54,7 @@ void calc_server_deserialize__long_request(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_server_deserialize__long_request_2(void **state)
-{
+void calc_server_deserialize__long_request_2(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 10);
 	char part1[] = "1300#";
 	char part2[] = "GETMEM#";
@@ -90,8 +84,7 @@ void calc_server_deserialize__long_request_2(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_server_deserialize__invalid_method(void **state)
-{
+void calc_server_deserialize__invalid_method(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1300#INVALID#12.3#45.3$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -104,8 +97,7 @@ void calc_server_deserialize__invalid_method(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_server_deserialize__invalid_operand(void **state)
-{
+void calc_server_deserialize__invalid_operand(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1300#GETMEM#hello#45.3$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -118,8 +110,7 @@ void calc_server_deserialize__invalid_operand(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_server_deserialize__invalid_operand_2(void **state)
-{
+void calc_server_deserialize__invalid_operand_2(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1300#GETMEM#12.3#hello$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -132,8 +123,7 @@ void calc_server_deserialize__invalid_operand_2(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_server_deserialize__too_many_fields(void **state)
-{
+void calc_server_deserialize__too_many_fields(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1300#GETMEM#12.3#34.5#-2.4$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -146,8 +136,7 @@ void calc_server_deserialize__too_many_fields(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_server_deserialize__single_request(void **state)
-{
+void calc_server_deserialize__single_request(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1300#GETMEM#-12.302#45.3$";
 	calc_proto_ser_set_req_callback(ser, req_cb);
@@ -159,8 +148,7 @@ void calc_server_deserialize__single_request(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_server_deserialize__multipart_request(void **state)
-{
+void calc_server_deserialize__multipart_request(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char part1[] = "1300#";
 	char part2[] = "GETM";
@@ -189,8 +177,7 @@ void calc_server_deserialize__multipart_request(void **state)
 	assert_true(req_cb_called);
 }
 
-void calc_server_deserialize__multipart_request_2(void **state)
-{
+void calc_server_deserialize__multipart_request_2(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 40);
 	char part1[] = "130";
 	char part2[] = "0#GETMEM#";
@@ -237,8 +224,7 @@ void calc_server_deserialize__multipart_request_2(void **state)
 	assert_true(req_cb_called);
 }
 
-void calc_client_deserialize__invalid_req_id(void **state)
-{
+void calc_client_deserialize__invalid_req_id(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "hello#2#-104.891$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -251,8 +237,7 @@ void calc_client_deserialize__invalid_req_id(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_client_deserialize__invalid_status(void **state)
-{
+void calc_client_deserialize__invalid_status(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1245#hello#-104.891$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -265,8 +250,7 @@ void calc_client_deserialize__invalid_status(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_client_deserialize__invalid_status_2(void **state)
-{
+void calc_client_deserialize__invalid_status_2(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1245#5#-104.891$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -279,8 +263,7 @@ void calc_client_deserialize__invalid_status_2(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_client_deserialize__invalid_result(void **state)
-{
+void calc_client_deserialize__invalid_result(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1245#4#hello$";
 	calc_proto_ser_set_error_callback(ser, error_cb);
@@ -293,8 +276,7 @@ void calc_client_deserialize__invalid_result(void **state)
 	assert_true(err_cb_called);
 }
 
-void calc_client_deserialize__single_response(void **state)
-{
+void calc_client_deserialize__single_response(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char req[] = "1245#4#-104.891$";
 	calc_proto_ser_set_resp_callback(ser, resp_cb);
@@ -307,8 +289,7 @@ void calc_client_deserialize__single_response(void **state)
 	assert_true(resp_cb_called);
 }
 
-void calc_client_deserialize__multipart_request_2(void **state)
-{
+void calc_client_deserialize__multipart_request_2(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	char part1[] = "124";
 	char part2[] = "5#1#";
@@ -352,8 +333,7 @@ void calc_client_deserialize__multipart_request_2(void **state)
 	assert_true(resp_cb_called);
 }
 
-void calc_server_serialize_response(void **state)
-{
+void calc_server_serialize_response(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	struct calc_proto_resp_t resp;
 	resp.req_id = 153;
@@ -364,8 +344,7 @@ void calc_server_serialize_response(void **state)
 	free(buf.data);
 }
 
-void calc_client_serialize_request(void **state)
-{
+void calc_client_serialize_request(void **state) {
 	calc_proto_ser_constructor(ser, NULL, 32);
 	struct calc_proto_req_t req;
 	req.id = 153;
@@ -377,70 +356,52 @@ void calc_client_serialize_request(void **state)
 	free(buf.data);
 }
 
-int setup(void **state)
-{
+int setup(void **state) {
 	ser = calc_proto_ser_new();
 	return 0;
 }
 
-int teardown(void **state)
-{
+int teardown(void **state) {
 	calc_proto_ser_destructor(ser);
 	calc_proto_ser_delete(ser);
 	return 0;
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(calc_server_deserialize__long_request,
+										setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_server_deserialize__long_request_2,
+										setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_server_deserialize__invalid_method,
+										setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__long_request, setup, teardown),
+			calc_server_deserialize__invalid_operand, setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__long_request_2, setup,
-			teardown),
+			calc_server_deserialize__invalid_operand_2, setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__invalid_method, setup,
-			teardown),
+			calc_server_deserialize__too_many_fields, setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_server_deserialize__single_request,
+										setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__invalid_operand, setup,
-			teardown),
+			calc_server_deserialize__multipart_request, setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__invalid_operand_2, setup,
-			teardown),
+			calc_server_deserialize__multipart_request_2, setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_client_deserialize__invalid_req_id,
+										setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_client_deserialize__invalid_status,
+										setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__too_many_fields, setup,
-			teardown),
+			calc_client_deserialize__invalid_status_2, setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_client_deserialize__invalid_result,
+										setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__single_request, setup,
-			teardown),
+			calc_client_deserialize__single_response, setup, teardown),
 		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__multipart_request, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_server_deserialize__multipart_request_2, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_client_deserialize__invalid_req_id, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_client_deserialize__invalid_status, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_client_deserialize__invalid_status_2, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_client_deserialize__invalid_result, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_client_deserialize__single_response, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(
-			calc_client_deserialize__multipart_request_2, setup,
-			teardown),
-		cmocka_unit_test_setup_teardown(calc_server_serialize_response,
-						setup, teardown),
-		cmocka_unit_test_setup_teardown(calc_client_serialize_request,
-						setup, teardown)
-	};
+			calc_client_deserialize__multipart_request_2, setup, teardown),
+		cmocka_unit_test_setup_teardown(calc_server_serialize_response, setup,
+										teardown),
+		cmocka_unit_test_setup_teardown(calc_client_serialize_request, setup,
+										teardown)};
 	return cmocka_run_group_tests(tests, NULL, NULL);
 }

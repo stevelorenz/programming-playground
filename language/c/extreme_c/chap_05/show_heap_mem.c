@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void print_mem_maps()
-{
+void print_mem_maps() {
 #ifdef __linux__
 	FILE *fd = fopen("/proc/self/maps", "r");
 	if (fd == NULL) {
@@ -19,8 +18,7 @@ void print_mem_maps()
 #endif
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	char *p;
 	p = malloc(10 * sizeof(char));
 	printf("Malloc: ");

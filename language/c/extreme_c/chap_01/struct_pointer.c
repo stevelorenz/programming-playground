@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <assert.h>
+#include <stdio.h>
 
 typedef struct {
 	int x;
@@ -11,8 +11,7 @@ typedef struct {
 	int radius;
 } circle_t;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	circle_t c;
 	circle_t *p1 = &c;
 	point_t *p2 = (point_t *)&c;

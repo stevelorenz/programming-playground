@@ -2,15 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void *thread_body(void *args)
-{
+void *thread_body(void *args) {
 	char *str = (char *)(args);
 	printf("%s\n", str);
 	return NULL;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	pthread_t thread1;
 	pthread_t thread2;
 	pthread_t thread3;

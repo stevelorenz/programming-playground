@@ -30,10 +30,9 @@ int global_int_var4 = 3;
 char global_int_var5 = 'A';
 char global_int_var6 = 'B';
 
-int global_int_var7 = 33; // 0x00000021
+int global_int_var7 = 33;  // 0x00000021
 
-void dummy()
-{
+void dummy() {
 	/* Static local variables mean that the dummy function has access to
 	 * these vairables in Data or BSS segment. So they have a static
 	 * lifetime. And no matter how many times this function is called. The i
@@ -43,7 +42,4 @@ void dummy()
 	static int j = 1;
 }
 
-int main(int argc, char *argv[])
-{
-	return 0;
-}
+int main(int argc, char *argv[]) { return 0; }

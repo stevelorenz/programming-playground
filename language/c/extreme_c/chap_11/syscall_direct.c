@@ -6,13 +6,12 @@
 
 #define _GNU_SOURCE
 
-#include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/syscall.h>
+#include <unistd.h>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	char message[20] = "Hello syscall!\n";
 	// Invoke the write system call to write bytes into standard output.
 	// 15 is the length of the string.

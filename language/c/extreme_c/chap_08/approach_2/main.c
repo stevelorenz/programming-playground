@@ -3,8 +3,7 @@
 
 #include "student.h"
 
-int main(void)
-{
+int main(void) {
 	struct student_t *student;
 	char first_name[32];
 	char last_name[32];

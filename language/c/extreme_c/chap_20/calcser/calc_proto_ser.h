@@ -31,13 +31,13 @@ typedef void (*req_cb_t)(void *owner_obj, struct calc_proto_req_t);
 typedef void (*resp_cb_t)(void *owner_obj, struct calc_proto_resp_t);
 
 typedef void (*error_cb_t)(void *owner_obj, const int req_id,
-			   const int error_code);
+						   const int error_code);
 
 struct calc_proto_ser_t *calc_proto_ser_new();
 void calc_proto_ser_delete(struct calc_proto_ser_t *ser);
 
 void calc_proto_ser_constructor(struct calc_proto_ser_t *ser, void *owner_obj,
-				int ring_buffer_size);
+								int ring_buffer_size);
 
 void calc_proto_ser_destructor(struct calc_proto_ser_t *ser);
 
@@ -46,24 +46,22 @@ void *calc_proto_ser_get_context(struct calc_proto_ser_t *ser);
 void calc_proto_ser_set_req_callback(struct calc_proto_ser_t *ser, req_cb_t cb);
 
 void calc_proto_ser_set_resp_callback(struct calc_proto_ser_t *ser,
-				      resp_cb_t cb);
+									  resp_cb_t cb);
 void calc_proto_ser_set_error_callback(struct calc_proto_ser_t *ser,
-				       error_cb_t cb);
+									   error_cb_t cb);
 
 void calc_proto_ser_server_deserialize(struct calc_proto_ser_t *ser,
-				       struct buffer_t buffer,
-				       bool_t *req_found);
+									   struct buffer_t buffer,
+									   bool_t *req_found);
 
-struct buffer_t
-calc_proto_ser_server_serialize(struct calc_proto_ser_t *ser,
-				const struct calc_proto_resp_t *resp);
+struct buffer_t calc_proto_ser_server_serialize(
+	struct calc_proto_ser_t *ser, const struct calc_proto_resp_t *resp);
 
 void calc_proto_ser_client_deserialize(struct calc_proto_ser_t *ser,
-				       struct buffer_t buffer,
-				       bool_t *resp_found);
+									   struct buffer_t buffer,
+									   bool_t *resp_found);
 
-struct buffer_t
-calc_proto_ser_client_serialize(struct calc_proto_ser_t *ser,
-				const struct calc_proto_req_t *req);
+struct buffer_t calc_proto_ser_client_serialize(
+	struct calc_proto_ser_t *ser, const struct calc_proto_req_t *req);
 
 #endif

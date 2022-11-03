@@ -4,16 +4,14 @@
 
 #include "cstack.h"
 
-void deleter(struct value *v)
-{
+void deleter(struct value *v) {
 	if (v->data) {
 		free(v->data);
 	}
 	v->data = NULL;
 }
 
-struct value make_int(int int_value)
-{
+struct value make_int(int int_value) {
 	struct value v;
 	int *int_ptr;
 	int_ptr = malloc(sizeof(int));
@@ -23,19 +21,15 @@ struct value make_int(int int_value)
 	return v;
 }
 
-int extract_int(struct value *v)
-{
-	return *((int *)v->data);
-}
+int extract_int(struct value *v) { return *((int *)v->data); }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct cstack *s = cstack_new();
 
 	cstack_constructor(s, 100);
 	assert(cstack_size(s) == 0);
 
-	int int_values[] = { 5, 10, 20, 30 };
+	int int_values[] = {5, 10, 20, 30};
 	size_t i;
 	for (i = 0; i < 4; ++i) {
 		cstack_push(s, make_int(int_values[i]));

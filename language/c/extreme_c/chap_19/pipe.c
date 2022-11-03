@@ -4,8 +4,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	int pipefd[2];
 	assert(pipe(pipefd) != -1);
 

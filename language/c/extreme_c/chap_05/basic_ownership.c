@@ -9,39 +9,29 @@ struct queue {
 	double *arr;
 };
 
-void queue_init(struct queue *q)
-{
+void queue_init(struct queue *q) {
 	q->front = 0;
 	q->rear = 0;
 	/* The queue object is the owner of this heap memory.*/
 	q->arr = malloc(QUEUE_MAX_SIZE * sizeof(double));
 }
 
-void queue_destroy(struct queue *q)
-{
-	free(q->arr);
-}
+void queue_destroy(struct queue *q) { free(q->arr); }
 
-int queue_size(struct queue *q)
-{
-	return q->rear - q->front;
-}
+int queue_size(struct queue *q) { return q->rear - q->front; }
 
-void enqueue(struct queue *q, double item)
-{
+void enqueue(struct queue *q, double item) {
 	q->arr[q->rear] = item;
 	q->rear++;
 }
 
-double dequeue(struct queue *q)
-{
+double dequeue(struct queue *q) {
 	double item = q->arr[q->front];
 	q->front++;
 	return item;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct queue *q;
 	q = malloc(sizeof(struct queue));
 	queue_init(q);

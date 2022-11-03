@@ -9,8 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-void fill_matrix(int *matrix, int rows, int columns)
-{
+void fill_matrix(int *matrix, int rows, int columns) {
 	int i = 0;
 	int j = 0;
 	int counter = 1;
@@ -22,8 +21,7 @@ void fill_matrix(int *matrix, int rows, int columns)
 	}
 }
 
-void print_matrix(int *matrix, int rows, int columns)
-{
+void print_matrix(int *matrix, int rows, int columns) {
 	int i = 0;
 	int j = 0;
 	for (i = 0; i < rows; i++) {
@@ -34,8 +32,7 @@ void print_matrix(int *matrix, int rows, int columns)
 	}
 }
 
-int cache_friendly_sum(int *matrix, int rows, int columns)
-{
+int cache_friendly_sum(int *matrix, int rows, int columns) {
 	int i = 0;
 	int j = 0;
 	int sum = 0;
@@ -47,8 +44,7 @@ int cache_friendly_sum(int *matrix, int rows, int columns)
 	return sum;
 }
 
-int cache_unfriendly_sum(int *matrix, int rows, int columns)
-{
+int cache_unfriendly_sum(int *matrix, int rows, int columns) {
 	int i = 0;
 	int j = 0;
 	int sum = 0;
@@ -60,25 +56,24 @@ int cache_unfriendly_sum(int *matrix, int rows, int columns)
 	return sum;
 }
 
-int get_operation_code(char *operation)
-{
+int get_operation_code(char *operation) {
 	int i = 0;
-	char *valid_operations[] = { "print", "friendly-sum",
-				     "not-friendly-sum" };
+	char *valid_operations[] = {"print", "friendly-sum", "not-friendly-sum"};
 	for (i = 0; i < 3; ++i) {
 		if (strncmp(operation, valid_operations[i],
-			    strlen(valid_operations[i])) == 0) {
+					strlen(valid_operations[i])) == 0) {
 			return i;
 		}
 	}
 	return -1;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	if (argc < 4) {
-		printf("Usage: %s [print|friendly-sum|not-friendly-sum] [number-of-rows] [number-of-columns]\n",
-		       argv[0]);
+		printf(
+			"Usage: %s [print|friendly-sum|not-friendly-sum] [number-of-rows] "
+			"[number-of-columns]\n",
+			argv[0]);
 		exit(1);
 	}
 

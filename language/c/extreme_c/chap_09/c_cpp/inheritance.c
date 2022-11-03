@@ -11,8 +11,7 @@ struct child_t {
 	char str[5];
 };
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct child_t c;
 	c.parent.c = 'A';
 	c.parent.d = 'B';

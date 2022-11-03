@@ -1,18 +1,14 @@
 #include <stdio.h>
 
 class Rect {
-    public:
-	int Area()
-	{
-		return width * length;
-	}
+   public:
+	int Area() { return width * length; }
 
 	int width;
 	int length;
 };
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	Rect r;
 	r.width = 10;
 	r.length = 25;

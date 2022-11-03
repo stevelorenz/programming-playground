@@ -1,27 +1,24 @@
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <pthread.h>
-
-#include <sys/socket.h>
+#include "stream_server_core.h"
 
 #include <calc_proto_ser.h>
 #include <calc_service.h>
+#include <errno.h>
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include "common_server_core.h"
-#include "stream_server_core.h"
 
 struct client_addr_t {
 	int sd;
 };
 
 void stream_write_resp(struct client_context_t *context,
-		       struct calc_proto_resp_t *resp)
-{
-	struct buffer_t buf =
-		calc_proto_ser_server_serialize(context->ser, resp);
+					   struct calc_proto_resp_t *resp) {
+	struct buffer_t buf = calc_proto_ser_server_serialize(context->ser, resp);
 	if (buf.len == 0) {
 		close(context->addr->sd);
 		fprintf(stderr, "Internal error while serializing response.\n");
@@ -31,8 +28,7 @@ void stream_write_resp(struct client_context_t *context,
 	int ret = write(context->addr->sd, buf.data, buf.len);
 	free(buf.data);
 	if (ret == -1) {
-		fprintf(stderr, "Could not write to client: %s\n",
-			strerror(errno));
+		fprintf(stderr, "Could not write to client: %s\n", strerror(errno));
 		close(context->addr->sd);
 		exit(1);
 	} else if (ret < buf.len) {
@@ -41,8 +37,7 @@ void stream_write_resp(struct client_context_t *context,
 	}
 }
 
-void *client_handler(void *arg)
-{
+void *client_handler(void *arg) {
 	struct client_context_t context;
 	context.addr = malloc(sizeof(struct client_addr_t));
 	context.addr->sd = *((int *)arg);
@@ -79,27 +74,25 @@ void *client_handler(void *arg)
 	return NULL;
 }
 
-void accept_forever(int server_sd)
-{
+void accept_forever(int server_sd) {
 	while (1) {
 		int client_sd = accept(server_sd, NULL, NULL);
 		if (client_sd == -1) {
 			close(server_sd);
 			fprintf(stderr, "Could not accept the client: %s\n",
-				strerror(errno));
+					strerror(errno));
 			exit(1);
 		}
 		pthread_t client_handler_thread;
 		int *arg = (int *)malloc(sizeof(int));
 		*arg = client_sd;
-		int result = pthread_create(&client_handler_thread, NULL,
-					    &client_handler, arg);
+		int result =
+			pthread_create(&client_handler_thread, NULL, &client_handler, arg);
 		if (result) {
 			close(client_sd);
 			close(server_sd);
 			free(arg);
-			fprintf(stderr,
-				"Could not start the client handler thread.\n");
+			fprintf(stderr, "Could not start the client handler thread.\n");
 			exit(1);
 		}
 	}

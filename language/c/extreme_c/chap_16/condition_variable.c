@@ -1,6 +1,6 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <pthread.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -14,21 +14,18 @@ struct shared_state_t {
 	pthread_cond_t cv;
 };
 
-void shared_state_init(struct shared_state_t *state)
-{
+void shared_state_init(struct shared_state_t *state) {
 	state->done = FALSE;
 	pthread_mutex_init(&state->mtx, NULL);
 	pthread_cond_init(&state->cv, NULL);
 }
 
-void shared_state_destroy(struct shared_state_t *state)
-{
+void shared_state_destroy(struct shared_state_t *state) {
 	pthread_mutex_destroy(&state->mtx);
 	pthread_cond_destroy(&state->cv);
 }
 
-void *thread_body_1(void *arg)
-{
+void *thread_body_1(void *arg) {
 	struct shared_state_t *ss = (struct shared_state_t *)arg;
 	pthread_mutex_lock(&ss->mtx);
 	printf("A\n");
@@ -39,8 +36,7 @@ void *thread_body_1(void *arg)
 	return NULL;
 }
 
-void *thread_body_2(void *arg)
-{
+void *thread_body_2(void *arg) {
 	struct shared_state_t *ss = (struct shared_state_t *)arg;
 	pthread_mutex_lock(&ss->mtx);
 	// Wait until the flag become True.
@@ -54,8 +50,7 @@ void *thread_body_2(void *arg)
 	return NULL;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct shared_state_t state;
 	pthread_t thread1;
 	pthread_t thread2;

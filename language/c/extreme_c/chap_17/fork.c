@@ -3,8 +3,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	printf("This is the parent process with PID: %d\n", getpid());
 	pid_t ret;
 
@@ -15,7 +14,7 @@ int main(int argc, char *argv[])
 	}
 	if (ret) {
 		printf("The parent process created a child process with PID: %d\n",
-		       ret);
+			   ret);
 	} else {
 		printf("This is the child process with PID:%d\n", getpid());
 	}

@@ -1,12 +1,12 @@
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <pthread.h>
 
-#define CHECK_RESULT(result)                                                   \
-	if (result) {                                                          \
-		printf("A pthread error happened.\n");                         \
-		exit(1);                                                       \
+#define CHECK_RESULT(result)                   \
+	if (result) {                              \
+		printf("A pthread error happened.\n"); \
+		exit(1);                               \
 	}
 
 int TRUE = 1;
@@ -19,16 +19,14 @@ pthread_barrier_t alloc_barrier;
 pthread_barrier_t fill_barrier;
 pthread_barrier_t done_barrier;
 
-void *alloc_thread_body(void *arg)
-{
+void *alloc_thread_body(void *arg) {
 	shared_array_len = 20;
 	shared_array = malloc(shared_array_len * sizeof(char *));
 	pthread_barrier_wait(&alloc_barrier);
 	return NULL;
 }
 
-void *filler_thread_body(void *arg)
-{
+void *filler_thread_body(void *arg) {
 	// Wait for the alloc thread to finish his job.
 	pthread_barrier_wait(&alloc_barrier);
 	int even = *((int *)arg);
@@ -50,16 +48,14 @@ void *filler_thread_body(void *arg)
 	return NULL;
 }
 
-void *print_thread_body(void *arg)
-{
+void *print_thread_body(void *arg) {
 	pthread_barrier_wait(&fill_barrier);
 	printf(">> %s\n", shared_array);
 	pthread_barrier_wait(&done_barrier);
 	return NULL;
 }
 
-void *destroy_thread_body(void *arg)
-{
+void *destroy_thread_body(void *arg) {
 	pthread_barrier_wait(&done_barrier);
 	free(shared_array);
 	pthread_barrier_destroy(&alloc_barrier);
@@ -68,8 +64,7 @@ void *destroy_thread_body(void *arg)
 	return NULL;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	shared_array = NULL;
 	pthread_barrier_init(&alloc_barrier, NULL, 3);
 	pthread_barrier_init(&fill_barrier, NULL, 3);
@@ -90,11 +85,9 @@ int main(int argc, char *argv[])
 	CHECK_RESULT(res);
 	res = pthread_create(&alloc_thread, &attr, alloc_thread_body, NULL);
 	CHECK_RESULT(res);
-	res = pthread_create(&even_fill_thread, &attr, filler_thread_body,
-			     &TRUE);
+	res = pthread_create(&even_fill_thread, &attr, filler_thread_body, &TRUE);
 	CHECK_RESULT(res);
-	res = pthread_create(&odd_fill_thread, &attr, filler_thread_body,
-			     &FALSE);
+	res = pthread_create(&odd_fill_thread, &attr, filler_thread_body, &FALSE);
 	CHECK_RESULT(res);
 
 	res = pthread_create(&print_thread, &attr, print_thread_body, NULL);

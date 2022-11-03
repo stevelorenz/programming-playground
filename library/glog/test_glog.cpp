@@ -1,8 +1,7 @@
 #include <fmt/core.h>
 #include <glog/logging.h>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	// Configure the glog library
 	FLAGS_logtostderr = true;
 	FLAGS_colorlogtostderr = true;

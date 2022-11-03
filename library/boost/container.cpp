@@ -1,21 +1,18 @@
 #include <boost/intrusive/list.hpp>
+#include <iostream>
 #include <string>
 #include <utility>
-#include <iostream>
 
 struct animal : public boost::intrusive::list_base_hook<> {
 	std::string name;
 	int legs;
-	animal(std::string n, int l) : name{ std::move(n) }, legs{ l }
-	{
-	}
+	animal(std::string n, int l) : name{std::move(n)}, legs{l} {}
 };
 
-int main()
-{
-	animal a1{ "cat", 4 };
-	animal a2{ "shark", 0 };
-	animal a3{ "spider", 8 };
+int main() {
+	animal a1{"cat", 4};
+	animal a2{"shark", 0};
+	animal a3{"spider", 8};
 	typedef boost::intrusive::list<animal> animal_list;
 	animal_list animals;
 

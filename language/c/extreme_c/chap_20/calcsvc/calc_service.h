@@ -21,14 +21,14 @@ void calc_service_destructor(struct calc_service_t *svc);
 void calc_service_reset_mem(struct calc_service_t *svc);
 double calc_service_get_mem(struct calc_service_t *svc);
 double calc_service_add(struct calc_service_t *svc, double a, double b,
-			bool_t mem);
+						bool_t mem);
 double calc_service_sub(struct calc_service_t *svc, double a, double b,
-			bool_t mem);
+						bool_t mem);
 
 double calc_service_mul(struct calc_service_t *svc, double a, double b,
-			bool_t mem);
+						bool_t mem);
 
 int calc_service_div(struct calc_service_t *svc, double a, double b,
-		     double *result);
+					 double *result);
 
 #endif /* !CALC_SERVICE_H */

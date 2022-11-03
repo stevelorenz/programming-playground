@@ -5,13 +5,12 @@
 
 #define _GNU_SOURCE
 
-#include <unistd.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/syscall.h>
+#include <unistd.h>
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	char str[20] = "Zuo";
 	char message[64] = "";
 	// Invoke the write system call to write bytes into standard output.

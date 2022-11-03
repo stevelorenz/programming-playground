@@ -1,16 +1,14 @@
+#include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <pthread.h>
-#include <unistd.h>
-
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include "common_client_core.h"
 
-void *stream_response_reader(void *obj)
-{
+void *stream_response_reader(void *obj) {
 	struct context_t *context = (struct context_t *)obj;
 	char read_buf[64];
 	while (1) {
@@ -30,8 +28,7 @@ void *stream_response_reader(void *obj)
 	return NULL;
 }
 
-void stream_client_loop(int conn_sd)
-{
+void stream_client_loop(int conn_sd) {
 	struct context_t context;
 	context.sd = conn_sd;
 	context.ser = calc_proto_ser_new();
@@ -59,8 +56,7 @@ void stream_client_loop(int conn_sd)
 			calc_proto_ser_client_serialize(context.ser, &req);
 		int ret = write(context.sd, ser_req.data, ser_req.len);
 		if (ret == -1) {
-			fprintf(stderr, "Error while writing! %s\n",
-				strerror(errno));
+			fprintf(stderr, "Error while writing! %s\n", strerror(errno));
 			break;
 		}
 		if (ret < ser_req.len) {

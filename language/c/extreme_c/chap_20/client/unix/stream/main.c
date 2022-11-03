@@ -1,23 +1,19 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stream_client_core.h>
 #include <string.h>
-#include <errno.h>
-#include <unistd.h>
-
 #include <sys/socket.h>
 #include <sys/un.h>
+#include <unistd.h>
 
-#include <stream_client_core.h>
-
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	char sock_file[] = "/tmp/calc_svc.sock";
 
 	// 1. Create the socket
 	int conn_sd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (conn_sd == -1) {
-		fprintf(stderr, "Cound not create the socket: %s\n",
-			strerror(errno));
+		fprintf(stderr, "Cound not create the socket: %s\n", strerror(errno));
 		exit(1);
 	}
 

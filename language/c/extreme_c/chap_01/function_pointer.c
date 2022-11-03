@@ -7,18 +7,11 @@
 /* Define a template for function pointers with arguments. */
 typedef int (*operation_t)(int, int);
 
-int sum(int a, int b)
-{
-	return a + b;
-}
+int sum(int a, int b) { return a + b; }
 
-int subtract(int a, int b)
-{
-	return a - b;
-}
+int subtract(int a, int b) { return a - b; }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	operation_t func_ptr = NULL;
 
 	func_ptr = sum;

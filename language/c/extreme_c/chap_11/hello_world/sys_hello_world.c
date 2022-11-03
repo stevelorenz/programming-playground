@@ -1,14 +1,13 @@
 #include <linux/kernel.h>
-#include <linux/slab.h> // For kmalloc and kfree
+#include <linux/slab.h>	 // For kmalloc and kfree
 #include <linux/string.h>
-#include <linux/uaccess.h>
 #include <linux/syscalls.h>
+#include <linux/uaccess.h>
 
-SYSCALL_DEFINE4(hello_world, const char __user *, str, // Input name
-		const unsigned int, str_len, // Length of input name
-		char __user *, buf, // Output buffer
-		unsigned int, buf_len)
-{
+SYSCALL_DEFINE4(hello_world, const char __user *, str,	// Input name
+				const unsigned int, str_len,			// Length of input name
+				char __user *, buf,						// Output buffer
+				unsigned int, buf_len) {
 	// Keep the content of the input buffer.
 	char name[64];
 	// Keep the content of the output buffer.

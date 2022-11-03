@@ -1,7 +1,7 @@
-#include <stdlib.h>
-#include <assert.h>
-
 #include "cstack.h"
+
+#include <assert.h>
+#include <stdlib.h>
 
 struct cstack {
 	size_t top;
@@ -9,16 +9,14 @@ struct cstack {
 	struct value *values;
 };
 
-struct value make_value(char *data, size_t len)
-{
+struct value make_value(char *data, size_t len) {
 	struct value v;
 	v.data = data;
 	v.len = len;
 	return v;
 }
 
-struct value copy_value(char *data, size_t len)
-{
+struct value copy_value(char *data, size_t len) {
 	char *buf;
 	size_t i;
 
@@ -29,8 +27,7 @@ struct value copy_value(char *data, size_t len)
 	return make_value(buf, len);
 }
 
-void free_value(struct value *v)
-{
+void free_value(struct value *v) {
 	if (v) {
 		if (v->data) {
 			free(v->data);
@@ -39,36 +36,26 @@ void free_value(struct value *v)
 	}
 }
 
-struct cstack *cstack_new()
-{
+struct cstack *cstack_new() {
 	return (struct cstack *)malloc(sizeof(struct cstack));
 }
 
-void cstack_delete(struct cstack *s)
-{
-	free(s);
-}
+void cstack_delete(struct cstack *s) { free(s); }
 
-void cstack_constructor(struct cstack *s, size_t max_size)
-{
+void cstack_constructor(struct cstack *s, size_t max_size) {
 	s->top = 0;
 	s->max_size = max_size;
 	s->values = (struct value *)malloc(max_size * sizeof(struct value));
 }
 
-void cstack_destructor(struct cstack *s, void (*deleter)(struct value *v))
-{
+void cstack_destructor(struct cstack *s, void (*deleter)(struct value *v)) {
 	cstack_clear(s, deleter);
 	free(s->values);
 }
 
-size_t cstack_size(struct cstack *s)
-{
-	return s->top;
-}
+size_t cstack_size(struct cstack *s) { return s->top; }
 
-bool_t cstack_push(struct cstack *s, struct value v)
-{
+bool_t cstack_push(struct cstack *s, struct value v) {
 	if (s->top < s->max_size) {
 		s->top += 1;
 		s->values[s->top] = v;
@@ -77,8 +64,7 @@ bool_t cstack_push(struct cstack *s, struct value v)
 	return FALSE;
 }
 
-bool_t cstack_pop(struct cstack *s, struct value *v)
-{
+bool_t cstack_pop(struct cstack *s, struct value *v) {
 	if (s->top > 0) {
 		*v = s->values[s->top];
 		s->top -= 1;
@@ -87,8 +73,7 @@ bool_t cstack_pop(struct cstack *s, struct value *v)
 	return FALSE;
 }
 
-void cstack_clear(struct cstack *s, void (*deleter)(struct value *v))
-{
+void cstack_clear(struct cstack *s, void (*deleter)(struct value *v)) {
 	struct value v;
 	while (cstack_size(s) > 0) {
 		bool_t popped = cstack_pop(s, &v);

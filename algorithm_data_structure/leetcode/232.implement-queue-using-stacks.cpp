@@ -7,56 +7,44 @@
 // @lc code=start
 
 #include <algorithm>
-#include <vector>
-#include <stack>
 #include <queue>
+#include <stack>
+#include <vector>
 
 using namespace std;
 
-class MyQueue
-{
-public:
-    stack<int> in, out;
+class MyQueue {
+   public:
+	stack<int> in, out;
 
-    MyQueue() {}
+	MyQueue() {}
 
-    // Put element in in to out -> revert elements in in to out
-    void in2out()
-    {
-        if (out.empty())
-        {
-            while (not in.empty())
-            {
-                int x = in.top();
-                in.pop();
-                out.push(x);
-            }
-        }
-    }
+	// Put element in in to out -> revert elements in in to out
+	void in2out() {
+		if (out.empty()) {
+			while (not in.empty()) {
+				int x = in.top();
+				in.pop();
+				out.push(x);
+			}
+		}
+	}
 
-    void push(int x)
-    {
-        in.push(x);
-    }
+	void push(int x) { in.push(x); }
 
-    int pop()
-    {
-        in2out();
-        int x = out.top();
-        out.pop();
-        return x;
-    }
+	int pop() {
+		in2out();
+		int x = out.top();
+		out.pop();
+		return x;
+	}
 
-    int peek()
-    {
-        in2out();
-        return out.top();
-    }
+	int peek() {
+		in2out();
+		return out.top();
+	}
 
-    bool empty()
-    {
-        return in.empty() and out.empty();
-    }
+	bool empty() { return in.empty() and out.empty(); }
 };
 
 /**

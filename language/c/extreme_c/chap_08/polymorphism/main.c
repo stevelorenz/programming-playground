@@ -4,8 +4,7 @@
 #include "animal.h"
 #include "cat.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	struct animal_t *animal = NULL;
 	struct cat_t *cat = NULL;
 

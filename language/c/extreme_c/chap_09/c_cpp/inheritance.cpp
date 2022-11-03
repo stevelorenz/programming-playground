@@ -2,18 +2,17 @@
 #include <stdlib.h>
 
 class Parent {
-    public:
+   public:
 	char c;
 	char d;
 };
 
 class Child : public Parent {
-    public:
+   public:
 	char str[5];
 };
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 	Child c;
 	c.c = 'A';
 	c.d = 'B';
