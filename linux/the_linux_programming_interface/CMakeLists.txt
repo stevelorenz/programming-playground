@@ -63,6 +63,14 @@ endif()
 list(APPEND CMAKE_MODULE_PATH
 	"${CMAKE_SOURCE_DIR}/cmake/module")
 
+# Use Clang instead of gcc by default
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_AR      "/usr/bin/llvm-ar")
+set(CMAKE_LINKER  "/usr/bin/llvm-ld")
+set(CMAKE_NM      "/usr/bin/llvm-nm")
+set(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
+set(CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
@@ -71,24 +79,36 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Set different compiler flags for debug and release modes
+# Only use debug mode for this project !!!
+set(CMAKE_BUILD_TYPE "Debug")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 	message("${Yellow}Debug mode is used!!!")
 	if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-		message("${Yellow}Enable sanitizers on Linux")
+		message("${Yellow}Enable all sanitizers on Linux!")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 		-O0 \
 		-Wall -Wextra -Werror \
 		-Wno-unused \
 		-fsanitize=address -fsanitize=leak -fsanitize=undefined \
 		-pg")
-	else()
+	elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+		message("${Yellow}Enable available sanitizers on MacOS!")
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 		-O0 \
+		-Wall -Wextra -Werror \
+		-Wno-unused \
+		-fsanitize=address -fsanitize=undefined \
+		-pg")
+	else()
+		message("${Yellow}Disable all sanitizers!")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
+		-O0 \
+		-Wall -Wextra -Werror \
 		-Wno-unused \
 		-pg")
 	endif()
 else()
+	message(FATAL_ERROR "This project should be compiled ONLY with debug mode!")
 	message("${Yellow}Release mode is used!")
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} \
 	-O3")
