@@ -63,13 +63,15 @@ endif()
 list(APPEND CMAKE_MODULE_PATH
 	"${CMAKE_SOURCE_DIR}/cmake/module")
 
-# Use Clang instead of gcc by default
-set(CMAKE_C_COMPILER "/usr/bin/clang")
-set(CMAKE_AR      "/usr/bin/llvm-ar")
-set(CMAKE_LINKER  "/usr/bin/llvm-ld")
-set(CMAKE_NM      "/usr/bin/llvm-nm")
-set(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
-set(CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	# On MacOS: Use Clang instead of gcc by default
+	set(CMAKE_C_COMPILER "/usr/bin/clang")
+	set(CMAKE_AR      "/usr/bin/llvm-ar")
+	set(CMAKE_LINKER  "/usr/bin/llvm-ld")
+	set(CMAKE_NM      "/usr/bin/llvm-nm")
+	set(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
+	set(CMAKE_RANLIB  "/usr/bin/llvm-ranlib")	
+endif()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -144,5 +146,6 @@ target_compile_options(sanitizer_props INTERFACE
 #  Subdirectories  #
 ####################
 
+add_subdirectory(fileio)
 add_subdirectory(lib)
 add_subdirectory(mmap)
