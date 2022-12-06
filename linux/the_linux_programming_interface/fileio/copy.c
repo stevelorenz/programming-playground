@@ -1,5 +1,5 @@
 #include <fcntl.h>
-#include <gnu/libc-version.h>
+// #include <gnu/libc-version.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
@@ -12,8 +12,8 @@
 
 int main(int argc, char const* argv[]) {
 	// version is a pointer which points to a constant character
-	char const* version = gnu_get_libc_version();
-	printf("LibC version: %s\n", version);
+	// char const* version = gnu_get_libc_version();
+	// printf("LibC version: %s\n", version);
 
 	int inputFD, outputFD, openFlags;
 	mode_t filePerms;
