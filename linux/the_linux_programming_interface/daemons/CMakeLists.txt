@@ -1,0 +1,2 @@
+add_executable(test_become_daemon test_become_daemon.c become_daemon.h become_daemon.c)
+target_link_libraries(test_become_daemon tlpi)
