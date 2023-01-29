@@ -149,3 +149,5 @@ target_compile_options(sanitizer_props INTERFACE
 add_subdirectory(fileio)
 add_subdirectory(lib)
 add_subdirectory(mmap)
+add_subdirectory(proc)
+add_subdirectory(memalloc)
