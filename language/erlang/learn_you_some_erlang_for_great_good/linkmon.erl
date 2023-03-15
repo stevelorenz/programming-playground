@@ -1,5 +1,5 @@
 -module(linkmon).
--compile([export_all]).
+-export([myproc/0, chain/1]).
 
 myproc() ->
     timer:sleep(5000),

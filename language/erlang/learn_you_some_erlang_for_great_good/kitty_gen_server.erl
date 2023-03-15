@@ -8,6 +8,7 @@
 -record(cat, {name, color=green, description}).
 
 start_link() ->
+    % Empty args and empty options
     gen_server:start_link(?MODULE, [], []).
 
 order_cat(Pid, Name, Color, Description) ->
