@@ -1,4 +1,4 @@
-SUBDIRS = misc-modules pci
+SUBDIRS = misc-modules pci scull
 
 all: subdirs
 
