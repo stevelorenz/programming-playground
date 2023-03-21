@@ -1,4 +1,4 @@
-obj-m := std-timer.o waitqueue.o
+obj-m := waitqueue.o dedicated_workqueue.o cmwq.o
 
 KERNELDIR ?= /lib/modules/$(shell uname -r)/build
 
