@@ -6,39 +6,105 @@
 #include <linux/version.h>
 
 MODULE_DESCRIPTION("Dummy character driver");
+MODULE_AUTHOR("Zuo Xiang <xianglinks@gmail.com>");
 MODULE_LICENSE("GPL");
+
+#define DUMMY_MAGIC_NUMBER 117
 
 static unsigned int major; /* major number for device */
 static struct class *dummy_class;
 static struct cdev dummy_cdev;
 
+// Per-device private data
+// - magic_num: Just the magic data to copied from kernel to user space
+// - op_counter: Used as a hard limitation of number of operations
+struct dummy_private_data {
+	struct cdev cdev;
+	int magic_num;
+	int op_counter;
+};
+
+// - inode: Refers to a file on the disk
+// - filp: Refers to an open file with associated file descriptor
 int dummy_open(struct inode *inode, struct file *filp) {
+	struct dummy_private_data *pd = NULL;
+
+	pd = container_of(inode->i_cdev, struct dummy_private_data, cdev);
+	pd->magic_num = DUMMY_MAGIC_NUMBER;
+	pd->op_counter = 0;
+	filp->private_data = pd;
+
 	pr_info("Someone tried to open me\n");
+
 	return 0;
 }
 
 int dummy_release(struct inode *inode, struct file *filp) {
+	filp->private_data = NULL;
+
 	pr_info("Someone closed me\n");
+
 	return 0;
 }
 
+/**
+ * The read operation handler
+ * In this dummy read operation, the device will return the magic_num in dummy_private_data only once.
+ *
+ * @param filp 
+ * @param __user 
+ * @param count 
+ * @param offset 
+ * @return 
+ */
 ssize_t dummy_read(struct file *filp, char __user *buf, size_t count,
 				   loff_t *offset) {
-	pr_info("Nothing to read\n");
-	return 0;
+	struct dummy_private_data *pd = NULL;
+
+	if (*offset > DUMMY_MAGIC_NUMBER) {
+		return 0;
+	}
+	if (*offset + count > DUMMY_MAGIC_NUMBER) {
+		count = DUMMY_MAGIC_NUMBER - (*offset);
+	}
+
+	pd = filp->private_data;
+	if (pd->op_counter < 1) {
+		if (copy_to_user(buf, &(pd->magic_num), sizeof(int)) != 0) {
+			return -EIO;
+		}
+		pd->op_counter += 1;
+		pr_info("This is just a dummy read...\n");
+		return sizeof(int);
+	} else {
+		pr_info("This is just a dummy read...\n");
+		return 0;
+	}
 }
 
+// It's not clear to me why count uses size_t, but the offset is passed with an
+// pointer?
 ssize_t dummy_write(struct file *filp, const char __user *buf, size_t count,
 					loff_t *offset) {
-	pr_info("Can't accept any data\n");
+	pr_info("This is just a dummy write...\n");
+
+	// Write beyond the end of the file.
+	if (*offset > DUMMY_MAGIC_NUMBER) {
+		return -EINVAL;
+	}
+	if (*offset + count > DUMMY_MAGIC_NUMBER) {
+		count = DUMMY_MAGIC_NUMBER - *offset;
+	}
+
 	return count;
 }
 
+// Register handlers for file operations
 struct file_operations dummy_fops = {
-	open : dummy_open,
-	release : dummy_release,
-	read : dummy_read,
-	write : dummy_write,
+	.open = dummy_open,
+	.release = dummy_release,
+	.read = dummy_read,
+	.write = dummy_write,
 };
 
 static int __init dummy_char_init_module(void) {
@@ -67,8 +133,11 @@ static int __init dummy_char_init_module(void) {
 	cdev_init(&dummy_cdev, &dummy_fops);
 	dummy_cdev.owner = THIS_MODULE;
 	/* Now make the device live for the users to access */
-	cdev_add(&dummy_cdev, devt, 1);
+	cdev_add(&dummy_cdev, devt,
+			 1);  // Only 1 consecuitive minor number to this device.
 
+	// Make the device physically visible under /dev directory with the given
+	// name !!!
 	dummy_device = device_create(dummy_class, NULL, /* no parent device */
 								 devt,				/* associated dev_t */
 								 NULL,				/* no additional data */
