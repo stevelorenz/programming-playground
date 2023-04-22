@@ -1,0 +1,2 @@
+add_executable(list_files_readdir_r list_files_readdir_r.c)
+target_link_libraries(list_files_readdir_r tlpi)
