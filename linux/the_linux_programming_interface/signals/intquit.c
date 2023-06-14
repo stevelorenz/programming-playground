@@ -11,6 +11,9 @@ static void sigHandler(int sig) {
 	if (sig == SIGINT) {
 		count++;
 		printf("Caught SIGINT (%d)\n", count);
+		if (signal(SIGINT, sigHandler) == SIG_ERR) {
+			errExit("signal");
+		}
 		return;
 	}
 
@@ -19,6 +22,9 @@ static void sigHandler(int sig) {
 }
 
 int main() {
+	// The callback of signal ONLY runs once. You need to register callback
+	// again inside the callback function to handle signal multiple times.
+	// However, there's a race condition here. So better use sigaction.
 	if (signal(SIGINT, sigHandler) == SIG_ERR) {
 		errExit("signal");
 	}

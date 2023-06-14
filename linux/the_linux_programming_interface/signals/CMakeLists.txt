@@ -9,3 +9,6 @@ target_link_libraries(t_kill tlpi)
 
 add_executable(sig_sender sig_sender.c)
 target_link_libraries(sig_sender tlpi)
+
+add_executable(siginterrupt siginterrupt.c)
+target_link_libraries(siginterrupt tlpi)
