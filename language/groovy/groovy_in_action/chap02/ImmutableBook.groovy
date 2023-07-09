@@ -12,5 +12,5 @@ try {
 	assert false, "should not reach here!"
 
 } catch (ReadOnlyPropertyException expected) {
-	println("Expected Error: '$expected.message'")
+	println("Expected Error (Immutable class): '$expected.message'")
 }
