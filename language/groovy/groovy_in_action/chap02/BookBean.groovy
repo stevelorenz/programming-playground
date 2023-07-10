@@ -1,5 +1,7 @@
 class BookBeanClass {
-	String title
+
+    String title
+
 }
 
 def groovyBook = new BookBeanClass()

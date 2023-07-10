@@ -1,15 +1,6 @@
-GROOVY := groovy
+.PHONY: format
+format:
+	@echo "* Format all sample Groovy programs..."
+	@find ./ -type f -name '*.groovy' -exec npm-groovy-lint --format \; > /dev/null 2>&1
 
-define run
-	@echo "- Run $1"
-	@$(GROOVY) $1
-endef
-
-all:
-	@echo "* Run all sample programs..."
-
-	@$(call run,./chap02/range_usage.groovy)
-	@$(call run,./chap02/map_usage.groovy)
-	@$(call run,./chap02/gstring.groovy)
-	@$(call run,./chap02/BookBean.groovy)
-	@$(call run,./chap02/ImmutableBook.groovy) > /dev/null
+.DEFAULT_GOAL := format
