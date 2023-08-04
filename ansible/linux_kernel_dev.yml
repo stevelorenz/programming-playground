@@ -22,6 +22,7 @@
           - dwarves
           - fakeroot
           - flex
+          - indent
           - libelf-dev
           - libncurses-dev
           - libssl-dev
