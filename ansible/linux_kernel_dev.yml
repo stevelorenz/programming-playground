@@ -1,0 +1,31 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+
+  tasks:
+    - name: "Update apt repo"
+      become: true
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: "Install Linux kernel development related packages"
+      become: true
+      apt:
+        name:
+          - bison 
+          - build-essential 
+          - cppcheck
+          - dwarves
+          - fakeroot
+          - flex
+          - libelf-dev
+          - libncurses-dev
+          - libssl-dev
+          - make
+          - sparse
+
+        state: latest
