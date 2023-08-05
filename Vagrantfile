@@ -8,8 +8,8 @@
 CPUS = 4
 RAM = 4096
 
-BOX = "bento/ubuntu-20.04"
-BOX_LIBVIRT = "generic/ubuntu2004"
+BOX = "bento/ubuntu-22.04"
+BOX_LIBVIRT = "generic/ubuntu2204"
 
 #######################
 #  Provision Scripts  #
@@ -42,7 +42,6 @@ Vagrant.configure("2") do |config|
     playground.vm.hostname = "playground"
 
     playground.vm.provider "virtualbox" do |vb|
-      vb.name = "playground"
       vb.memory = RAM
       vb.cpus = CPUS
     end
