@@ -21,6 +21,7 @@
           - cppcheck
           - dwarves
           - fakeroot
+          - flawfinder
           - flex
           - indent
           - libelf-dev

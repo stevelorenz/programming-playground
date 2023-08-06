@@ -2,11 +2,9 @@
 ARCH := $(shell arch)
 KDIR := /lib/modules/$(shell uname -r)/build
 
-# Set FNAME_C to the kernel module name source filename (without .c)
-FNAME_C := lkm_template
-
 PWD            := $(shell pwd)
-obj-m          += ${FNAME_C}.o
+obj-m          := core_lkm.o
+obj-m          += user_lkm.o
 EXTRA_CFLAGS   += -DDEBUG
 
 all:
@@ -87,7 +85,7 @@ sa_cppcheck:
 	cppcheck -v --force --enable=all -i .tmp_versions/ -i *.mod.c -i bkp/ --suppress=missingIncludeSystem .
 
 # Packaging; just tar.xz as of now
-PKG_NAME := ${FNAME_C}
+PKG_NAME := modstacking
 tarxz-pkg:
 	rm -f ../${PKG_NAME}.tar.xz 2>/dev/null
 	make clean
