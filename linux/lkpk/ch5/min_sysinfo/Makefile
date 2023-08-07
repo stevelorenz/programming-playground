@@ -3,7 +3,7 @@ ARCH := $(shell arch)
 KDIR := /lib/modules/$(shell uname -r)/build
 
 # Set FNAME_C to the kernel module name source filename (without .c)
-FNAME_C := lkm_template
+FNAME_C := min_sysinfo
 
 PWD            := $(shell pwd)
 obj-m          += ${FNAME_C}.o
