@@ -21,11 +21,13 @@
           - cppcheck
           - dwarves
           - fakeroot
+          - flawfinder
           - flex
           - indent
           - libelf-dev
           - libncurses-dev
           - libssl-dev
+          - linux-headers-{{ ansible_kernel }}
           - make
           - sparse
 

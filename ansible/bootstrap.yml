@@ -28,7 +28,6 @@
         - iperf3
         - libelf-dev
         - libssl-dev
-        - linux-headers-{{ ansible_kernel }}
         - make
         - net-tools
         - openbox
