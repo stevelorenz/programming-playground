@@ -6,7 +6,8 @@ KDIR := /lib/modules/$(shell uname -r)/build
 FNAME_C := kernel_seg
 
 PWD            := $(shell pwd)
-obj-m          += ${FNAME_C}.o
+obj-m                 += show_kernel_seg.o
+show_kernel_seg-objs  += kernel_seg.o ../../klib_llkd.o
 EXTRA_CFLAGS   += -DDEBUG
 
 all:

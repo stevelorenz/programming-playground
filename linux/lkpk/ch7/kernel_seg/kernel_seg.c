@@ -12,6 +12,7 @@
 #include <linux/version.h>
 #include <linux/vmalloc.h>
 
+#include "../../klib_llkd.h"
 #include "../../convenient.h"
 
 #define MODNAME "kernel_seg"
@@ -103,6 +104,7 @@ static void show_kernelseg_info(void) {
 
 static int __init kernel_seg_init(void) {
 	pr_info("inserted\n");
+    llkd_minsysinfo();
 	show_kernelseg_info();
 	return 0;
 }
