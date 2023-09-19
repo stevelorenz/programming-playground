@@ -1,75 +1,108 @@
+/*
+ * Sample vsomeip service
+ *
+ * NOTE: Sample/Test code, NOT production code!
+ * */
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 #include <vsomeip/vsomeip.hpp>
 
-#define SAMPLE_SERVICE_ID 0x1234
-#define SAMPLE_INSTANCE_ID 0x5678
-#define SAMPLE_METHOD_ID 0x0421
+#include "common.hpp"
 
+/**
+ * @class CounterService
+ * @brief
+ *
+ * NOTE: Graceful termination and deactivation of services has not yet been
+ * implemented!
+ *
+ */
 class CounterService {
-   public:
-	CounterService()
-		: app_(vsomeip::runtime::get()->create_application("CounterService")),
-		  counter_(0) {}
+  public:
+    CounterService()
+        : app_(vsomeip::runtime::get()->create_application("CounterService")),
+          counter_(0) {}
 
-	bool init() {
-		// init the application
-		if (!app_->init()) {
-			return false;
-		}
+    /**
+     * Callback to handle client request
+     *
+     * @param _request
+     */
+    void on_message(const std::shared_ptr<vsomeip::message> &_request) {
+        // vsomeip::payload is an array of byte_t, namely uint8_t
+        std::shared_ptr<vsomeip::payload> its_payload = _request->get_payload();
+        vsomeip::length_t l = its_payload->get_length();
 
-		return true;
-	}
+        // Handle service request
+        if (l != sizeof(unsigned int)) {
+            // NOTE: Use a logger instead of cout for production code
+            std::cout << "Invalid request payload size: " << l << "! Ignore it!"
+                      << std::endl;
+            return;
+        }
 
-	void on_message(const std::shared_ptr<vsomeip::message> &_request) {
-		std::shared_ptr<vsomeip::payload> its_payload = _request->get_payload();
-		vsomeip::length_t l = its_payload->get_length();
+        unsigned int cmd = 0;
+        cmd = (unsigned int)*(its_payload->get_data());
 
-		// Get payload
-		std::stringstream ss;
-		for (vsomeip::length_t i = 0; i < l; i++) {
-			ss << std::setw(2) << std::setfill('0') << std::hex
-			   << (int)*(its_payload->get_data() + i) << " ";
-		}
+        std::cout << "SERVICE: Received cmd message with Client/Session ["
+                  << std::setw(4) << std::setfill('0') << std::hex
+                  << _request->get_client() << "/" << std::setw(4)
+                  << std::setfill('0') << std::hex << _request->get_session()
+                  << "] " << cmd << std::endl;
 
-		std::cout << "SERVICE: Received message with Client/Session ["
-				  << std::setw(4) << std::setfill('0') << std::hex
-				  << _request->get_client() << "/" << std::setw(4)
-				  << std::setfill('0') << std::hex << _request->get_session()
-				  << "] " << ss.str() << std::endl;
+        if (CMD_INCRESE_COUNTER == cmd) {
+            counter_ += 1;
+        } else if (CMD_DECRESE_COUNTER == cmd) {
+            if (counter_ > 0) {
+                counter_ -= 1;
+            }
+        } else {
+            std::cout << "Invalid request CMD: " << cmd << std::endl;
+            return;
+        }
 
-		// Create response
-		std::shared_ptr<vsomeip::message> its_response =
-			vsomeip::runtime::get()->create_response(_request);
-		its_payload = vsomeip::runtime::get()->create_payload();
-		std::vector<vsomeip::byte_t> its_payload_data;
-		for (int i = 9; i >= 0; i--) {
-			its_payload_data.push_back(i % 256);
-		}
-		its_payload->set_data(its_payload_data);
-		its_response->set_payload(its_payload);
-		app_->send(its_response);
-	}
+        // Create service response
+        std::shared_ptr<vsomeip::message> its_response =
+            vsomeip::runtime::get()->create_response(_request);
+        its_payload = vsomeip::runtime::get()->create_payload();
+        auto its_payload_data = get_payload_data(counter_);
 
-	void run() {
-		app_->register_message_handler(SAMPLE_SERVICE_ID, SAMPLE_INSTANCE_ID,
-									   SAMPLE_METHOD_ID,
-									   // TODO: Find std::bind alternative!!!
-									   std::bind(&CounterService::on_message,
-												 this, std::placeholders::_1));
-		app_->offer_service(SAMPLE_SERVICE_ID, SAMPLE_INSTANCE_ID);
-		app_->start();
-	}
+        its_payload->set_data(its_payload_data);
+        its_response->set_payload(its_payload);
+        app_->send(its_response);
+    }
 
-   private:
-	std::shared_ptr<vsomeip::application> app_;
-	unsigned int counter_;
+    bool init() {
+        // Init the vsomeip application
+        if (not app_->init()) {
+            return false;
+        }
+        // Register request handler callback
+        app_->register_message_handler(SAMPLE_SERVICE_ID, SAMPLE_INSTANCE_ID,
+                                       SAMPLE_METHOD_ID,
+                                       std::bind(&CounterService::on_message,
+                                                 this, std::placeholders::_1));
+        app_->offer_service(SAMPLE_SERVICE_ID, SAMPLE_INSTANCE_ID);
+        return true;
+    }
+
+    void start() { app_->start(); }
+
+  private:
+    std::shared_ptr<vsomeip::application> app_;
+    unsigned int counter_;
 };
 
 int main() {
-	auto service = CounterService();
-	service.init();
-	service.run();
-	return 0;
+    auto service = CounterService();
+
+    if (not service.init()) {
+        return EXIT_FAILURE;
+    };
+
+    service.start();
+
+    return EXIT_SUCCESS;
 }
