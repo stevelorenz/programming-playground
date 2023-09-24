@@ -16,3 +16,6 @@ target_link_libraries(service-example ${VSOMEIP_LIBRARIES} ${Boost_LIBRARIES})
 
 add_executable(client-example common.cpp client-example.cpp)
 target_link_libraries(client-example ${VSOMEIP_LIBRARIES} ${Boost_LIBRARIES})
+
+add_executable(subscriber-example common.cpp subscriber-example.cpp)
+target_link_libraries(subscriber-example ${VSOMEIP_LIBRARIES} ${Boost_LIBRARIES})
