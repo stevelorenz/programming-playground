@@ -68,7 +68,7 @@ class Subscriber {
         its_groups.insert(SAMPLE_EVENTGROUP_ID);
         app_->request_event(SAMPLE_SERVICE_ID, SAMPLE_INSTANCE_ID,
                             SAMPLE_EVENT_ID, its_groups,
-                            vsomeip::event_type_e::ET_FIELD);
+                            vsomeip::event_type_e::ET_EVENT);
         std::cout
             << "[INFO] Subscriber starts to subscribe the event group with ID: "
             << SAMPLE_EVENTGROUP_ID << std::endl;

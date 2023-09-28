@@ -163,7 +163,7 @@ class CounterService {
         its_groups.insert(SAMPLE_EVENTGROUP_ID);
         app_->offer_event(
             SAMPLE_SERVICE_ID, SAMPLE_INSTANCE_ID, SAMPLE_EVENT_ID, its_groups,
-            vsomeip::event_type_e::ET_FIELD, std::chrono::milliseconds::zero(),
+            vsomeip::event_type_e::ET_EVENT, std::chrono::milliseconds::zero(),
             false, true, nullptr, vsomeip::reliability_type_e::RT_UNKNOWN);
 
         is_offered_ = true;
