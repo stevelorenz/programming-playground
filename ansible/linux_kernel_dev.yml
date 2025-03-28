@@ -16,8 +16,8 @@
       become: true
       apt:
         name:
-          - bison 
-          - build-essential 
+          - bison
+          - build-essential
           - cppcheck
           - dwarves
           - fakeroot

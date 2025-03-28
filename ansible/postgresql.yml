@@ -32,7 +32,7 @@
       systemd:
         name: postgresql
         state: started
-        enabled: yes 
+        enabled: yes
 
     - name: "Create postgres test database"
       # MARK: postgresql local connection uses peer authentication instead of md5 (username+password)

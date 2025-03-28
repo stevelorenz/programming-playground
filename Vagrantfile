@@ -25,6 +25,7 @@ APT_PKGS=(
 DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends "${APT_PKGS[@]}"
 SCRIPT
 
+# TODO: Check if following libvirt-specific configs are really required in newer releases
 $setup_libvirt_vm_always= <<-SCRIPT
 # Configure the SSH server to allow X11 forwarding with sudo
 cp /vagrant/comnetsemu/util/sshd_config /etc/ssh/sshd_config

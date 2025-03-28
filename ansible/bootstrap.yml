@@ -7,7 +7,7 @@
 
   - name: Update and upgrade apt-get repo and cache
     become: true
-    apt: 
+    apt:
       cache_valid_time: 3600
       force_apt_get: yes
       update_cache: yes
@@ -30,7 +30,6 @@
         - libssl-dev
         - make
         - net-tools
-        - openbox
         - pkg-config
         - python3
         - python3-dev
