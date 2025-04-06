@@ -1,0 +1,20 @@
+###############################################
+# Configuration file for Bochs
+###############################################
+
+# RAM in MB
+megs: 32
+
+# BIOS and VGABIOS
+romimage: file=/usr/share/bochs/BIOS-bochs-latest
+vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest.bin
+
+# Boot option
+boot: disk
+
+# Log file
+log: log.bochsrc.disk
+
+# Hard disk (for boot)
+ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+ata0-master: type=disk, path="hd60.img", mode=flat
