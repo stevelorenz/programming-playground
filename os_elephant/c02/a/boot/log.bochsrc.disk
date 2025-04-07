@@ -24,7 +24,7 @@
 00000000000i[USBCTL] Pluggable USB devices
 00000000000i[USBCTL]   floppy mouse tablet keypad keyboard hub disk cdrom
 00000000000i[USBCTL]   printer
-00000000000i[MEM0  ] allocated memory at 0x7976ee9dd010. after alignment, vector=0x7976ee9de000, block_size = 128K
+00000000000i[MEM0  ] allocated memory at 0x73d9a7bdd010. after alignment, vector=0x73d9a7bde000, block_size = 128K
 00000000000i[MEM0  ] 32.00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
 00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
@@ -37,7 +37,7 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
-00000000000i[CMOS  ] Setting initial clock to: Mon Apr  7  9:02:27   2025 tz=utc (time0=1744016547)
+00000000000i[CMOS  ] Setting initial clock to: Mon Apr  7 16:25:38   2025 tz=utc (time0=1744043138)
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -51,7 +51,7 @@
 00000000000i[BXVGA ] VBE Bochs Display Extension Enabled (16 MB)
 00000000000i[XGUI  ] test_alloc_colors: 16 colors available out of 16 colors tried
 00000000000i[XGUI  ] font 8 wide x 16 high, display depth = 24
-00000000000i[XGUI  ] maximum host resolution: x=1920 y=1030
+00000000000i[XGUI  ] maximum host resolution: x=3840 y=1030
 00000000000i[MEM0  ] rom at 0xc0000/32768 ('/usr/share/bochs/VGABIOS-lgpl-latest.bin')
 00000000000i[PLUGIN] init_dev of 'floppy' plugin device by virtual method
 00000000000i[DMA   ] channel 2 used by Floppy Drive
@@ -68,9 +68,10 @@
 00000000000i[IOAPIC] IOAPIC enabled (base address = 0xfec00000)
 00000000000i[PLUGIN] init_dev of 'keyboard' plugin device by virtual method
 00000000000i[PLUGIN] init_dev of 'harddrv' plugin device by virtual method
-00000000000i[HD    ] HD on ata0-0: 'hd60.img', 'flat' mode
-00000000000i[IMG   ] hd_size: 62447616
-00000000000i[HD    ] ata0-0: autodetect geometry: CHS=121/16/63 (sector size=512)
+00000000000i[HD    ] HD on ata0-0: 'hd.img', 'flat' mode
+00000000000i[IMG   ] hd_size: 512
+00000000000i[HD    ] ata0-0: using specified geometry: CHS=121/16/63 (sector size=512)
+00000000000p[HD    ] >>PANIC<< ata0-0: specified geometry doesn't fit on disk image
 00000000000i[HD    ] translation on ata0-0 set to 'none'
 00000000000i[PLUGIN] init_dev of 'pci_ide' plugin device by virtual method
 00000000000i[DEV   ] PIIX3 PCI IDE controller present at device 1, function 1
@@ -253,33 +254,32 @@
 00001518196i[BXVGA ] VBE known Display Interface b0c0
 00001518236i[BXVGA ] VBE known Display Interface b0c5
 00001519657i[VBIOS ] VBE Bios ID: vbe.c 2025-01-08
-00001685947i[BIOS  ] ata0-0: PCHS=121/16/63 translation=none LCHS=121/16/63
-00005245738i[BIOS  ] IDE time out
-00017201967p[BIOS  ] >>PANIC<< No bootable device.
-00017202682i[CPU0  ] WARNING: HLT instruction with IF=0!
-01925180003i[      ] cpu loop quit, shutting down simulator
-01925180003i[CPU0  ] CPU is in real mode (halted)
-01925180003i[CPU0  ] CS.mode = 16 bit
-01925180003i[CPU0  ] SS.mode = 16 bit
-01925180003i[CPU0  ] EFER = 0x00000000: ffxsr nxe lma lme sce
-01925180003i[CPU0  ] XCR0=0x00000001: tiledata tilecfg hwp lbr uintr hdc cet_s cet_u pasid pkru pt hi_zmm zmm_hi256 opmask bndcfg bndregs ymm sse FPU
-01925180003i[CPU0  ] | EAX=60000e01  EBX=0000cd25  ECX=00090004  EDX=00000002
-01925180003i[CPU0  ] | ESP=0000ffbc  EBP=0000ffd2  ESI=000e0000  EDI=0000ffac
-01925180003i[CPU0  ] | EFLAGS=00000002: id vip vif ac vm rf nt IOPL=0 of df if tf sf zf af pf cf
-01925180003i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
-01925180003i[CPU0  ] |  CS:f000( 0004| 0|  0) 000f0000 0000ffff 0 0
-01925180003i[CPU0  ] |  DS:f000( 0005| 0|  0) 000f0000 0000ffff 0 0
-01925180003i[CPU0  ] |  SS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-01925180003i[CPU0  ] |  ES:07c0( 0005| 0|  0) 00007c00 0000ffff 0 0
-01925180003i[CPU0  ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-01925180003i[CPU0  ] |  GS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
-01925180003i[CPU0  ] | EIP=00000c48 (00000c48)
-01925180003i[CPU0  ] | CR0=0x60000010: pg CD NW ac wp ne ET ts em mp pe
-01925180003i[CPU0  ] | CR2=0x00000000
-01925180003i[CPU0  ] | CR3=0x00000000
-01925180003i[CPU0  ] | CR4=0x00000000: lass uintr pks cet pke smap smep keylock osxsave pcid fsgsbase smx vmx la57 umip osxmmexcpt osfxsr pce pge mce pae pse de tsd pvi vme
-01925180003i[CPU0  ] 0x0000000000000c48>> jmp .-3  (0x000f0c47) : EBFD
-01925180003i[CMOS  ] Last time: 1744017028 tz=utc (Mon Apr  7  9:10:28   2025)
-01925180003i[XGUI  ] Exit
-01925180003i[      ] restoring default signal behavior
-01925180003i[SIM   ] quit_sim called with exit code 1
+00001685753i[BIOS  ] ata0-0: PCHS=121/16/63 translation=none LCHS=121/16/63
+00005245512i[BIOS  ] IDE time out
+00017154387i[BIOS  ] Booting from 0000:7c00
+00683504000p[XGUI  ] >>PANIC<< POWER button turned off.
+00683504000i[CPU0  ] CPU is in real mode (active)
+00683504000i[CPU0  ] CS.mode = 16 bit
+00683504000i[CPU0  ] SS.mode = 16 bit
+00683504000i[CPU0  ] EFER = 0x00000000: ffxsr nxe lma lme sce
+00683504000i[CPU0  ] XCR0=0x00000001: tiledata tilecfg hwp lbr uintr hdc cet_s cet_u pasid pkru pt hi_zmm zmm_hi256 opmask bndcfg bndregs ymm sse FPU
+00683504000i[CPU0  ] | EAX=60001301  EBX=00000002  ECX=00090009  EDX=00001100
+00683504000i[CPU0  ] | ESP=00007c00  EBP=00007c33  ESI=000e0000  EDI=0000ffac
+00683504000i[CPU0  ] | EFLAGS=00000282: id vip vif ac vm rf nt IOPL=0 of df IF tf SF zf af pf cf
+00683504000i[CPU0  ] | SEG sltr(index|ti|rpl)     base    limit G D
+00683504000i[CPU0  ] |  CS:0000( 0004| 0|  0) 00000000 0000ffff 0 0
+00683504000i[CPU0  ] |  DS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00683504000i[CPU0  ] |  SS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00683504000i[CPU0  ] |  ES:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00683504000i[CPU0  ] |  FS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00683504000i[CPU0  ] |  GS:0000( 0005| 0|  0) 00000000 0000ffff 0 0
+00683504000i[CPU0  ] | EIP=00007c31 (00007c31)
+00683504000i[CPU0  ] | CR0=0x60000010: pg CD NW ac wp ne ET ts em mp pe
+00683504000i[CPU0  ] | CR2=0x00000000
+00683504000i[CPU0  ] | CR3=0x00000000
+00683504000i[CPU0  ] | CR4=0x00000000: lass uintr pks cet pke smap smep keylock osxsave pcid fsgsbase smx vmx la57 umip osxmmexcpt osfxsr pce pge mce pae pse de tsd pvi vme
+00683504000i[CPU0  ] 0x0000000000007c31>> jmp .-2  (0x00007c31) : EBFE
+00683504000i[CMOS  ] Last time: 1744043308 tz=utc (Mon Apr  7 16:28:28   2025)
+00683504000i[XGUI  ] Exit
+00683504000i[      ] restoring default signal behavior
+00683504000i[SIM   ] quit_sim called with exit code 1
