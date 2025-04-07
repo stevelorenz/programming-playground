@@ -27,4 +27,4 @@ echo "check over ...."
 sleep 2
 
 echo "run........"
-/usr/bin/bochs -f bochsrc.disk
+/usr/bin/bochs -q -f bochsrc.disk

@@ -16,4 +16,4 @@ boot: disk
 log: log.bochsrc.disk
 
 # Hard disk (for boot)
-ata0-master: type=disk, path="hd60.img", mode=flat
+ata0-master: type=disk, path="hd.img", mode=flat
