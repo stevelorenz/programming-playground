@@ -1,6 +1,6 @@
 ; MBR
 ;------------------------------------------------------------
-SECTION MBR vstart=0x7c00
+SECTION MBR vstart=0x7c00 ; The start address of MBR is 0x7c00
    mov ax,cs
    mov ds,ax
    mov es,ax
@@ -8,7 +8,7 @@ SECTION MBR vstart=0x7c00
    mov fs,ax
    mov sp,0x7c00
 
-; Clean screen and print test string
+; Clean screen and print the test string
 ; -----------------------------------------------------------
    mov ax, 0x600
    mov bx, 0x700

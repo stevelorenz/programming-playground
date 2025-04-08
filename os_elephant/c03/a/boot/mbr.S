@@ -21,8 +21,8 @@ SECTION MBR vstart=0x7c00
    mov dx, 184fh
    int 10h
 
-   ; Blick the string "1 MBR"
-   ; Use green and backgroud color and red as frontend color
+   ; Blink the test string "1 MBR"
+   ; Use green as the background color and red as front color
    mov byte [gs:0x00],'1'
    mov byte [gs:0x01],0xA4
 
