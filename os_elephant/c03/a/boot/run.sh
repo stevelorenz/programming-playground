@@ -1,3 +1,3 @@
 #!/bin/bash
 
-bochs -debugger -q -f ./bochsrc.disk
+bochs -q -f ./bochsrc.disk
