@@ -1,0 +1,57 @@
+---
+- hosts: all
+  become: true
+  vars:
+    ubuntu_version_codename: jammy
+
+  tasks:
+      - name: Install aptitude
+        apt:
+          name: aptitude
+          state: latest
+          update_cache: true
+
+      - name: Install required system packages
+        apt:
+          pkg:
+            - apt-transport-https
+            - ca-certificates
+            - curl
+            - python3-pip
+            - python3-setuptools
+            - software-properties-common
+            - virtualenv
+          state: latest
+          update_cache: true
+
+      - name: Add Docker GPG apt key
+        apt_key:
+          url: https://download.docker.com/linux/ubuntu/gpg
+          state: present
+
+      - name: Add Docker repository
+        apt_repository:
+          repo: deb https://download.docker.com/linux/ubuntu "{{ ubuntu_version_codename }}" stable
+          state: present
+
+      - name: Update apt and install docker-ce
+        apt:
+          name: docker-ce
+          state: latest
+          update_cache: true
+
+      - name: Install Docker module for python
+        pip:
+          name: docker
+
+      - name: Ensure Docker is started
+        systemd:
+          name: docker
+          state: started
+          enabled: yes
+
+      - name: Add user to the docker group
+        user:
+          name: vagrant
+          groups: docker
+          append: yes
