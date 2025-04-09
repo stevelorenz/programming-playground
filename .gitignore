@@ -294,3 +294,8 @@ datasets/
 machine_learning/hands_on_machine_learning_with_scikit_learn_tensorflow/images/**
 machine_learning/hands_on_machine_learning_with_scikit_learn_tensorflow/models/**
 machine_learning/hands_on_machine_learning_with_scikit_learn_tensorflow/logs/**
+
+# For ./os_elephant/
+*.img
+*.bin
+log.bochsrc.disk

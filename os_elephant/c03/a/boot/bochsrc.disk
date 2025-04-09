@@ -1,0 +1,20 @@
+###############################################
+# Configuration file for Bochs
+###############################################
+
+# RAM in MB
+megs: 32
+
+# BIOS and VGABIOS: Just use the default ones
+romimage: file=/usr/share/bochs/BIOS-bochs-latest
+vgaromimage: file=/usr/share/bochs/VGABIOS-lgpl-latest.bin
+
+# Boot option: Use hard disk
+boot: disk
+
+# Log file
+log: log.bochsrc.disk
+
+# Hard disk (for boot)
+ata0: enabled=1, ioaddr1=0x1f0, ioaddr2=0x3f0, irq=14
+ata0-master: type=disk, path="hd.img", mode=flat, cylinders=121, heads=16, spt=63
