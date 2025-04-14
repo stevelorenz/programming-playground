@@ -29,6 +29,7 @@ static void __init init_scull_dev(struct scull_dev *dev) {
     mutex_init(&dev->mutex);
 
     cdev_init(&dev->cdev, &scull_fops);
+    // Doulbe-confirm the owner
     dev->cdev.owner = THIS_MODULE;
 }
 

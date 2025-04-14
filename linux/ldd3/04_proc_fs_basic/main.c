@@ -67,6 +67,6 @@ static void __exit m_exit(void) {
 module_init(m_init);
 module_exit(m_exit);
 
-MODULE_AUTHOR("d0u9");
+MODULE_AUTHOR("zuoxiang");
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION("A very basic example to /proc fs manipulation");

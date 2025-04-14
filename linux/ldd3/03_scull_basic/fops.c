@@ -18,6 +18,7 @@ int scull_open(struct inode *inode, struct file *filp) {
 
     pr_debug("%s() is invoked\n", __FUNCTION__);
 
+    // Get the container/parent struct of the inode->i_cdev which is the field cdev of the struct with type scull_dev
     dev = container_of(inode->i_cdev, struct scull_dev, cdev);
     filp->private_data = dev;
 
@@ -72,6 +73,7 @@ ssize_t scull_read(struct file *filp, char __user *buff, size_t count,
     if (count > pblock->offset)
         count = pblock->offset;
 
+    // Use platform-dependent magic method to safely copy data from kernel space to user space
     if (copy_to_user(buff, pblock->data, count)) {
         retval = -EFAULT;
         goto cpy_user_error;
