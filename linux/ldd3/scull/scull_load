@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 module="scull"
 device="scull"
@@ -24,5 +24,5 @@ mknod /dev/${device}1 c "$major" 1
 mknod /dev/${device}2 c "$major" 2
 mknod /dev/${device}3 c "$major" 3
 ln -sf ${device}0 /dev/${device}
-chgrp $group /dev/${device}[0-3] 
-chmod $mode  /dev/${device}[0-3]
+chgrp $group /dev/${device}[0-3]
+chmod $mode /dev/${device}[0-3]
