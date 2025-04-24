@@ -19,6 +19,7 @@
       name:
         - bash-completion
         - bison
+        - cmake
         - dfc
         - flex
         - gdb

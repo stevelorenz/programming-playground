@@ -75,11 +75,12 @@ endif()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-set(CMAKE_C_EXTENSIONS OFF)
+# Enable compiler-specific C extensions. Required to use e.g. signal.h on Linux
+set(CMAKE_C_EXTENSIONS ON)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_EXTENSIONS ON)
 
 # Only use debug mode for this project !!!
 set(CMAKE_BUILD_TYPE "Debug")
@@ -146,18 +147,19 @@ target_compile_options(sanitizer_props INTERFACE
 #  Subdirectories  #
 ####################
 
+add_subdirectory(daemons)
+add_subdirectory(dir_links)
+add_subdirectory(filebuff)
 add_subdirectory(fileio)
+add_subdirectory(filesys)
+add_subdirectory(inotify)
 add_subdirectory(lib)
+add_subdirectory(memalloc)
 add_subdirectory(mmap)
 add_subdirectory(proc)
-add_subdirectory(memalloc)
-add_subdirectory(daemons)
 add_subdirectory(proccred)
-add_subdirectory(users_groups)
-add_subdirectory(time)
-add_subdirectory(sysinfo)
-add_subdirectory(filebuff)
-add_subdirectory(filesys)
-add_subdirectory(dir_links)
-add_subdirectory(inotify)
 add_subdirectory(signals)
+add_subdirectory(sysinfo)
+add_subdirectory(time)
+add_subdirectory(tty)
+add_subdirectory(users_groups)
