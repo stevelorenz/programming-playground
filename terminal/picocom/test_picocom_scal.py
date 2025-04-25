@@ -11,9 +11,24 @@ import pty
 import signal
 import subprocess
 import time
+import random
+import string
+
+TEST_DATA_BUF_SIZE = 1024
 
 
-def run_cleanup(ptys, picocoms):
+def term_processes(processes):
+    """Terminate all given processes using SIGTERM
+
+    :param processes:
+    :type processes:
+    """
+    for process in processes:
+        process.send_signal(signal.SIGTERM)
+        process.wait(timeout=10)
+
+
+def run_cleanup(ptys, picocoms, log_files):
     """Run cleanup of all created resources
 
     :param ptys:
@@ -24,14 +39,10 @@ def run_cleanup(ptys, picocoms):
         os.close(pty["master_fd"])
         os.close(pty["slave_fd"])
 
-    for n, process in enumerate(picocoms):
-        print(
-            "- [run_cleanup] {} Terminate process with PID {} using SIGTERM".format(
-                n, process.pid
-            )
-        )
-        process.send_signal(signal.SIGTERM)
-        process.wait(timeout=10)
+    for f in log_files:
+        f.close()
+
+    term_processes(picocoms)
 
 
 def create_pty_pairs(num):
@@ -69,29 +80,34 @@ def create_pty_pairs(num):
 
 def run_picocom(ptys):
     picocoms = list()
+    log_files = list()
     for n, pty in enumerate(ptys):
-        print(pty)
-        # Popen
+        output_file_path = "./{}_{}_output.log".format(
+            pty["master_fd"], pty["slave_fd"]
+        )
+        output_file = open(output_file_path, "w")
         process = subprocess.Popen(
             ["picocom", pty["slave_name"]],
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            preexec_fn=os.setpgrp,
+            stdout=output_file,
+            stderr=subprocess.STDOUT,
+            preexec_fn=os.setpgrp,  # Use a new process group to avoid signal trapping
         )
         picocoms.append(process)
+        log_files.append(output_file)
         print(
             "- [run_picocom] {} Start picocom process with pid: {} on slave device: {}".format(
                 n, process.pid, pty["slave_name"]
             )
         )
 
-    return picocoms
+    return picocoms, log_files
 
 
-def run_ut():
-    """Run unit tests for started picocom processes"""
-    pass
+def generate_random_string(length):
+    characters = string.ascii_letters + string.digits
+    random_string = "".join(random.choices(characters, k=length))
+    return random_string
 
 
 def run_workload_traffic(ptys):
@@ -100,7 +116,11 @@ def run_workload_traffic(ptys):
     :param ptys:
     :type ptys:
     """
-    pass
+    # TODO: Send with the theoretical maximal baudrate of a real TTY device
+    for pty in ptys:
+        input_fd = pty["master_fd"]
+        test_data = generate_random_string(TEST_DATA_BUF_SIZE)
+        os.write(input_fd, test_data.encode())
 
 
 def get_cpu_memory_usage(pid):
@@ -239,13 +259,16 @@ def main():
     ptys = create_pty_pairs(args.num + 1)
     # Pop the last PTY pair which is used for interactive testing
     _ = ptys.pop()
-    picocoms = run_picocom(ptys)
+    picocoms, log_files = run_picocom(ptys)
+    time.sleep(1)
+    run_workload_traffic(ptys)
 
     bm_data = {}
     for process in picocoms:
         bm_data[process.pid] = list()
 
     try:
+        print("\n" * 3, end="")
         for d in range(args.duration):
             # Run CPU and memory benchmarking
             for process in picocoms:
@@ -258,7 +281,7 @@ def main():
     except KeyboardInterrupt:
         print("\nKeyboardInterrupt detected! Run cleanups")
     finally:
-        run_cleanup(ptys, picocoms)
+        run_cleanup(ptys, picocoms, log_files)
 
 
 if __name__ == "__main__":
