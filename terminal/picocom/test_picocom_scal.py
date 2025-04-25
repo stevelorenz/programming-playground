@@ -8,20 +8,30 @@ Author: Zuo Xiang (zuoxiang)
 import argparse
 import os
 import pty
+import signal
 import subprocess
-import sys
 import time
 
 
-def run_cleanup(ptys):
-    """
+def run_cleanup(ptys, picocoms):
+    """Run cleanup of all created resources
 
     :param ptys:
     :type ptys:
     """
+    print("# Enter run_cleanup")
     for pty in ptys:
         os.close(pty["master_fd"])
         os.close(pty["slave_fd"])
+
+    for n, process in enumerate(picocoms):
+        print(
+            "- [run_cleanup] {} Terminate process with PID {} using SIGTERM".format(
+                n, process.pid
+            )
+        )
+        process.send_signal(signal.SIGTERM)
+        process.wait(timeout=10)
 
 
 def create_pty_pairs(num):
@@ -40,7 +50,7 @@ def create_pty_pairs(num):
         master_name = os.ttyname(master_fd)
         slave_name = os.ttyname(slave_fd)
         print(
-            "- [{}] PTY pair created with master: ({}, {}), slave: ({}, {})".format(
+            "- [create_pty_pairs] {} PTY pair created with master: ({}, {}), slave: ({}, {})".format(
                 n, master_fd, master_name, slave_fd, slave_name
             )
         )
@@ -61,23 +71,143 @@ def run_picocom(ptys):
     picocoms = list()
     for n, pty in enumerate(ptys):
         print(pty)
+        # Popen
         process = subprocess.Popen(
             ["picocom", pty["slave_name"]],
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            preexec_fn=os.setpgrp,
         )
         picocoms.append(process)
         print(
-            "- [{}] Start picocom process with pid: {} on slave device: {}".format(
+            "- [run_picocom] {} Start picocom process with pid: {} on slave device: {}".format(
                 n, process.pid, pty["slave_name"]
             )
         )
 
+    return picocoms
 
-def benchmark():
-    """TODO"""
+
+def run_ut():
+    """Run unit tests for started picocom processes"""
     pass
+
+
+def run_workload_traffic(ptys):
+    """TODO: Take care of OpenSSH processes here!!!
+
+    :param ptys:
+    :type ptys:
+    """
+    pass
+
+
+def get_cpu_memory_usage(pid):
+    """Get CPU and memory usage of the given PID (ONLY for Linux)
+
+    :param pid:
+    :type pid:
+    :return:
+    :rtype:
+    """
+    try:
+        stat_path = "/proc/{}/stat".format(pid)
+        status_path = "/proc/{}/status".format(pid)
+
+        with open(stat_path, "r") as stat_file:
+            stat_fields = stat_file.readline().split()
+            # CPU usage is the sum of utime (14th) and stime (15th) fields in jiffies
+            cpu_utime = int(stat_fields[13])  # User mode CPU time (ticks)
+            cpu_stime = int(stat_fields[14])  # Kernel mode CPU time (ticks)
+            cpu_total_time = cpu_utime + cpu_stime
+
+        with open(status_path, "r") as status_file:
+            memory_rss = None
+            for line in status_file:
+                if line.startswith("VmRSS:"):
+                    # VmRSS (Resident Set Size) gives the memory usage in KB
+                    memory_rss_kb = int(line.split()[1])  # Extract value in KB
+                    memory_rss = memory_rss_kb * 1024  # Convert to bytes (B)
+                    break
+
+        return cpu_total_time, memory_rss
+
+    except FileNotFoundError:
+        # Process might have terminated
+        return None, None
+
+
+def printBenchmarkResult(bm_data):
+    """Print the CPU and memory usage in a table
+
+    :param bm_data:
+    :type bm_data:
+    """
+    rows = []
+    total_avg_cpu = 0
+    total_avg_memory = 0
+
+    for process_id, measurements in bm_data.items():
+        total_cpu = 0
+        total_memory = 0
+        max_cpu = float("-inf")  # Initialize max values
+        max_memory = float("-inf")
+
+        for cpu_time, memory in measurements:
+            total_cpu += cpu_time
+            total_memory += memory
+            max_cpu = max(max_cpu, cpu_time)
+            max_memory = max(max_memory, memory)
+
+        avg_cpu_time = total_cpu / len(measurements)
+        avg_memory = total_memory / len(measurements)
+
+        total_avg_cpu += avg_cpu_time
+        total_avg_memory += avg_memory
+
+        rows.append(
+            (
+                process_id,
+                "picocom",
+                "{:.2f}".format(avg_cpu_time),
+                max_cpu,
+                "{:.2f}".format(avg_memory),
+                max_memory,
+            )
+        )
+
+    rows.append(
+        (
+            "Summary",
+            "-",
+            "{:.2f}".format(total_avg_cpu),
+            "-",
+            "{:.2f}".format(total_avg_memory),
+            "-",
+        )
+    )
+
+    # Create a table header
+    header = "{:<12}{:<12}{:<20}{:<15}{:<20}{:<15}".format(
+        "Process ID",
+        "Type",
+        "Average CPU Time",
+        "Max CPU Time",
+        "Average Memory (B)",
+        "Max Memory (B)",
+    )
+    separator = "-" * len(header)
+
+    # Print the table to the console
+    print(header)
+    print(separator)
+    for row in rows:
+        print(
+            "{:<12}{:<12}{:<20}{:<15}{:<20}{:<15}".format(
+                row[0], row[1], row[2], row[3], row[4], row[5]
+            )
+        )
 
 
 def main():
@@ -91,27 +221,44 @@ def main():
         default=1,
         help="Number of picocom processes",
     )
+    parser.add_argument(
+        "--duration",
+        type=int,
+        default=5,
+        help="Test duration in seconds",
+    )
 
     args = parser.parse_args()
 
-    print("# Create {} PTY pairs and run {} picocom processes.")
+    print(
+        "# Create {} PTY pairs and run {} picocom processes.".format(
+            args.num + 1, args.num
+        )
+    )
     print("  - Create one more PTY pair just for interactive tesing")
     ptys = create_pty_pairs(args.num + 1)
     # Pop the last PTY pair which is used for interactive testing
-    pty_inter = ptys.pop()
-    run_picocom(ptys)
+    _ = ptys.pop()
+    picocoms = run_picocom(ptys)
+
+    bm_data = {}
+    for process in picocoms:
+        bm_data[process.pid] = list()
 
     try:
-        while True:
+        for d in range(args.duration):
+            # Run CPU and memory benchmarking
+            for process in picocoms:
+                bm_data[process.pid].append(get_cpu_memory_usage(process.pid))
+            print("- Current duration: {} s".format(d + 1))
             time.sleep(1)
-            # TODO: Create a function to send data to picocom with different data rate
-            os.write(
-                pty_inter["master_fd"], "Hello from master side!\n".encode("utf-8")
-            )
+        print("\n" * 3, end="")
+        printBenchmarkResult(bm_data)
+        print("\n" * 3, end="")
     except KeyboardInterrupt:
         print("\nKeyboardInterrupt detected! Run cleanups")
-        run_cleanup(ptys)
-        sys.exit(0)
+    finally:
+        run_cleanup(ptys, picocoms)
 
 
 if __name__ == "__main__":
