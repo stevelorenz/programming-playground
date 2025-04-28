@@ -9,6 +9,7 @@ About: Test the scalability of picocom using pseudo terminal devices
 Author: Zuo Xiang (zuoxiang)
 
 TODO:
+    - Learn and add the openSSH part!
 """
 
 import argparse
@@ -191,6 +192,7 @@ def run_workload_traffic(ptys, baud_rate=115200):
 
 def check_workload_traffic_result(ptys):
     print("# Check the input and output result of test workload traffic")
+    all_pass = True
     for pty in ptys:
         input_log_file_name = "{}_{}_input.log".format(
             pty["master_fd"], pty["slave_fd"]
@@ -213,12 +215,45 @@ def check_workload_traffic_result(ptys):
                     input_log_file_name, output_log_file_name
                 )
             )
-        else:
-            print(
-                "- [check_workload_traffic_result] PASS! when comparing {} and {}".format(
-                    input_log_file_name, output_log_file_name
-                )
-            )
+            all_pass = False
+
+    if all_pass:
+        print(
+            "- [check_workload_traffic_result] All tests have been passed! Congratulations! Man!"
+        )
+    else:
+        print(
+            "- [check_workload_traffic_result] Test failure detected! Please check log files!"
+        )
+    print("\n" * 3, end="")
+
+
+def get_cpu_usage_with_top():
+    """Get whole system CPU usage percentage using the `top` command."""
+    try:
+        # Run the `top` command in batch mode to capture output
+        result = subprocess.run(
+            ["top", "-bn1"], capture_output=True, text=True, check=True
+        )
+
+        # Parse the output to find the line containing "Cpu(s)"
+        for line in result.stdout.splitlines():
+            if "Cpu(s)" in line:
+                # Extract the idle percentage from the line
+                parts = line.split(",")
+                idle_part = [part for part in parts if "id" in part][
+                    0
+                ]  # Find the 'id' section
+                idle_percentage = float(
+                    idle_part.split()[0]
+                )  # Extract the numeric value
+
+                # CPU usage is calculated as (100 - idle)
+                cpu_usage = 100 - idle_percentage
+                return cpu_usage
+        raise ValueError("Could not find CPU usage information in `top` output.")
+    except Exception as e:
+        raise RuntimeError("Failed to retrieve CPU usage: {}".format(e))
 
 
 def get_cpu_time(pid):
@@ -396,6 +431,8 @@ def main():
     print(
         "# Start the workload_traffic_thread to inject test traffic for created PTY pairs"
     )
+
+    cpu_usage_before = get_cpu_usage_with_top()
     workload_traffic_thread = threading.Thread(
         target=run_workload_traffic, args=(ptys,), daemon=True
     )
@@ -417,6 +454,15 @@ def main():
         printBenchmarkResult(bm_data)
         print("\n" * 3, end="")
 
+        cpu_usage_after = get_cpu_usage_with_top()
+        cpu_usage_diff = cpu_usage_after - cpu_usage_before
+        print("\n" * 3, end="")
+        print(
+            "# Whole system CPU usage: before: {:.2f}, after: {:.2f}, diff: {:.2f}".format(
+                cpu_usage_before, cpu_usage_after, cpu_usage_diff
+            )
+        )
+        print("\n" * 3, end="")
         workload_traffic_stop_event.set()
         workload_traffic_thread.join()
 
