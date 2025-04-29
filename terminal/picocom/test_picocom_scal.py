@@ -194,11 +194,8 @@ def get_ssh_server_pid(client_pid):
         raise RuntimeError("Error retrieving SSH server PID: {}".format(e))
 
 
-def run_ssh_clients(num, username):
-    ssh_command = [
-        "ssh",
-        "{}@127.0.0.1".format(username),
-    ]
+def run_ssh_clients(num, username, port):
+    ssh_command = ["ssh", "{}@127.0.0.1".format(username), "-p", "{}".format(port)]
     sshs = list()
 
     try:
@@ -215,8 +212,8 @@ def run_ssh_clients(num, username):
             server_pid = get_ssh_server_pid(client_pid)
             sshs.append((process, client_pid, server_pid))
             print(
-                "- [run_ssh_clients] {} Start ssh process with PID: {}, server-side PID: {}".format(
-                    n, client_pid, server_pid
+                "- [run_ssh_clients] {} Start ssh process on port: {} with PID: {}, server-side PID: {}".format(
+                    n, port, client_pid, server_pid
                 )
             )
 
@@ -503,6 +500,12 @@ def main():
         default="vagrant",
         help="SSH username used for OpenSSH tests. Instead of password, key based authentication is used!",
     )
+    parser.add_argument(
+        "--ssh_port",
+        type=int,
+        default=22,
+        help="SSH port",
+    )
 
     args = parser.parse_args()
     if args.num <= 0:
@@ -513,11 +516,11 @@ def main():
         sys.exit(1)
 
     print(
-        "# Run {} SSH connections on localhost for performance benchmarking. Username: {}".format(
-            args.num, args.ssh_username
+        "# Run {} SSH connections on localhost for performance benchmarking. Username: {}, port: {}".format(
+            args.num, args.ssh_username, args.ssh_port
         )
     )
-    sshs = run_ssh_clients(args.num, args.ssh_username)
+    sshs = run_ssh_clients(args.num, args.ssh_username, args.ssh_port)
 
     print(
         "# Create {} PTY pairs and run {} picocom processes.".format(
