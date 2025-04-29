@@ -26,11 +26,13 @@ import time
 #
 # Constants
 #
+# Data buff/block size used by workload traffic
 TEST_DATA_BUF_SIZE = 1024
 
 #
 # Global variables
 #
+# Event to stop the sending of workload traffic in the worker thread
 workload_traffic_stop_event = threading.Event()
 
 
@@ -228,8 +230,40 @@ def check_workload_traffic_result(ptys):
     print("\n" * 3, end="")
 
 
-def get_cpu_usage_with_top():
-    """Get whole system CPU usage percentage using the `top` command."""
+def get_process_cpu_usage_with_top(pid):
+    """Get the CPU and memory usage of a specific process using the top command.
+
+    :param pid: Process ID
+    :type pid:
+    :raises ValueError:
+    :raises RuntimeError:
+    :return:
+    :rtype:
+    """
+    try:
+        # Run the `top` command for the specific PID
+        result = subprocess.run(
+            ["top", "-bn1", "-p", str(pid)], capture_output=True, text=True, check=True
+        )
+        # Parse the output to find the line corresponding to the PID
+        for line in result.stdout.splitlines():
+            if line.strip().startswith(str(pid)):
+                # The line for the process includes columns for CPU and memory usage
+                parts = line.split()
+                # The columns typically follow this format:
+                # PID USER  PR  NI  VIRT  RES  SHR  S  %CPU  %MEM  TIME+  COMMAND
+                cpu_usage = float(parts[8])  # %CPU column
+                return cpu_usage
+
+        raise ValueError(
+            "Could not find usage information for PID {} in top output.".format(pid)
+        )
+    except Exception as e:
+        raise RuntimeError("Failed to retrieve process usage: {}".format(e))
+
+
+def get_system_cpu_usage_with_top():
+    """Get the whole system CPU usage percentage using the top command."""
     try:
         # Run the `top` command in batch mode to capture output
         result = subprocess.run(
@@ -251,36 +285,13 @@ def get_cpu_usage_with_top():
                 # CPU usage is calculated as (100 - idle)
                 cpu_usage = 100 - idle_percentage
                 return cpu_usage
-        raise ValueError("Could not find CPU usage information in `top` output.")
+        raise ValueError("Could not find CPU usage information in top output.")
     except Exception as e:
         raise RuntimeError("Failed to retrieve CPU usage: {}".format(e))
 
 
-def get_cpu_time(pid):
-    """Retrieve the total (accumulated) CPU time (user + system) of a process in seconds.
-    TODO: Check if this method works on real hardware boxes...
-
-    :param pid:
-    :type pid:
-    :return:
-    :rtype:
-    """
-    SC_CLK_TCK = os.sysconf(
-        os.sysconf_names["SC_CLK_TCK"]
-    )  # Get clock ticks per second
-    stat_path = f"/proc/{pid}/stat"
-    with open(stat_path, "r") as stat_file:
-        stat_fields = stat_file.readline().split()
-        cpu_utime = int(stat_fields[13])  # User mode CPU time (ticks)
-        cpu_stime = int(stat_fields[14])  # Kernel mode CPU time (ticks)
-        return (cpu_utime + cpu_stime) / SC_CLK_TCK  # Convert ticks to seconds
-
-
-def get_cpu_memory_usage(pid, cpu_monitor_interval=0.001):
-    """Get CPU and memory usage of the given PID (ONLY for Linux)
-
-       - For CPU: Use utime and stime fields and calculate the percentage with a given interval
-       - For memory: Use the VmRSS field
+def get_memory_usage_with_proc(pid):
+    """Get memory usage of the given PID (ONLY for Linux)
 
     :param pid:
     :type pid:
@@ -300,18 +311,10 @@ def get_cpu_memory_usage(pid, cpu_monitor_interval=0.001):
                     memory_usage = memory_rss_kb * 1024  # Convert to bytes (B)
                     break
 
-        cpu_time_start = get_cpu_time(pid)
-        time.sleep(cpu_monitor_interval)  # Wait for the specified interval
-        cpu_time_end = get_cpu_time(pid)
-        # Try to get the CPU usage in the unit of percentage
-        cpu_usage = ((cpu_time_end - cpu_time_start) / cpu_monitor_interval) * 100
-        cpu_usage = round(cpu_usage, 2)
+        return memory_usage
 
-        return cpu_usage, memory_usage
-
-    except FileNotFoundError:
-        # Process might have terminated
-        return None, None
+    except Exception as e:
+        raise RuntimeError("Failed to get memory usage using proc: {}".format(e))
 
 
 def printBenchmarkResult(bm_data):
@@ -365,7 +368,7 @@ def printBenchmarkResult(bm_data):
     )
 
     # Create a table header
-    header = "{:<12}{:<12}{:<20}{:<15}{:<20}{:<15}".format(
+    header = "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
         "Process ID",
         "Type",
         "Average CPU Usage (%)",
@@ -380,7 +383,7 @@ def printBenchmarkResult(bm_data):
     print(separator)
     for row in rows:
         print(
-            "{:<12}{:<12}{:<20}{:<15}{:<20}{:<15}".format(
+            "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
                 row[0], row[1], row[2], row[3], row[4], row[5]
             )
         )
@@ -432,7 +435,7 @@ def main():
         "# Start the workload_traffic_thread to inject test traffic for created PTY pairs"
     )
 
-    cpu_usage_before = get_cpu_usage_with_top()
+    system_cpu_usage_before = get_system_cpu_usage_with_top()
     workload_traffic_thread = threading.Thread(
         target=run_workload_traffic, args=(ptys,), daemon=True
     )
@@ -447,21 +450,26 @@ def main():
         for d in range(1, args.duration + 1, 1):
             # Run CPU and memory benchmarking
             for process in picocoms:
-                bm_data[process.pid].append(get_cpu_memory_usage(process.pid))
+                bm_data[process.pid].append(
+                    (
+                        get_process_cpu_usage_with_top(process.pid),
+                        get_memory_usage_with_proc(process.pid),
+                    )
+                )
             print("- Current duration: {} s".format(d))
             time.sleep(1)
         print("\n" * 3, end="")
+        print("=" * 120)
         printBenchmarkResult(bm_data)
-        print("\n" * 3, end="")
-
-        cpu_usage_after = get_cpu_usage_with_top()
-        cpu_usage_diff = cpu_usage_after - cpu_usage_before
+        system_cpu_usage_after = get_system_cpu_usage_with_top()
+        system_cpu_usage_diff = system_cpu_usage_after - system_cpu_usage_before
         print("\n" * 3, end="")
         print(
             "# Whole system CPU usage: before: {:.2f}, after: {:.2f}, diff: {:.2f}".format(
-                cpu_usage_before, cpu_usage_after, cpu_usage_diff
+                system_cpu_usage_before, system_cpu_usage_after, system_cpu_usage_diff
             )
         )
+        print("=" * 120)
         print("\n" * 3, end="")
         workload_traffic_stop_event.set()
         workload_traffic_thread.join()
