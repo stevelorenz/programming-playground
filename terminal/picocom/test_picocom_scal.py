@@ -16,6 +16,7 @@ import argparse
 import os
 import pty
 import random
+import re
 import signal
 import string
 import subprocess
@@ -59,7 +60,7 @@ def term_processes(processes, signal=signal.SIGTERM, wait_time_out=10):
         process.wait(wait_time_out)
 
 
-def run_cleanup(ptys, picocoms, output_log_files):
+def run_cleanup(ptys, picocoms, output_log_files, sshs):
     """Try to run cleanup of all created resources
 
     :param ptys:
@@ -79,6 +80,7 @@ def run_cleanup(ptys, picocoms, output_log_files):
         f.close()
 
     term_processes(picocoms)
+    term_processes(sshs)
 
 
 def create_pty_pairs(num):
@@ -145,6 +147,83 @@ def run_picocom(ptys):
         )
 
     return picocoms, log_files
+
+
+def get_ssh_server_pid(client_pid):
+    """Get the corresponded sshd server-side PID with the given client_pid.
+       This assuming that both client and server SSH processes are running on the same machine. Namely, localhost is
+       used here just for basic function and performance testing
+
+    :param client_pid:
+    :type client_pid:
+    :raises Exception:
+    :return:
+    :rtype:
+    """
+    try:
+        # Use 'lsof' to get the network connection details of the client process
+        lsof_command = "lsof -i -n -P | grep ssh | grep {}".format(client_pid)
+        lsof_output = subprocess.check_output(lsof_command, shell=True, text=True)
+
+        # Parse the output to extract the local port
+        # Example output: ssh     12345 user   3u  IPv4  1234567      0t0  TCP 127.0.0.1:port->127.0.0.1:22 (ESTABLISHED)
+        match = re.search(r"TCP \d+\.\d+\.\d+\.\d+:(\d+)->", lsof_output)
+        if not match:
+            raise RuntimeError("Could not parse the local port from lsof output.")
+
+        local_port = match.group(1)
+
+        # Use 'lsof' again to find the server-side process listening on this port
+        lsof_server_command = "sudo lsof -i -n -P | grep sshd | grep {}".format(
+            local_port
+        )
+        server_output = subprocess.check_output(
+            lsof_server_command, shell=True, text=True
+        )
+
+        for line in server_output.splitlines():
+            columns = line.split()
+            if len(columns) > 2 and columns[2] != "root":  # Check the user column
+                server_pid = int(columns[1])  # PID is the second column
+                return server_pid
+        raise RuntimeError("Can NOT find the SSH server PID in lsof output")
+
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError("Error running lsof command: {}".format(e))
+    except Exception as e:
+        raise RuntimeError("Error retrieving SSH server PID: {}".format(e))
+
+
+def run_ssh_clients(num, username):
+    ssh_command = [
+        "ssh",
+        "{}@127.0.0.1".format(username),
+    ]
+    sshs = list()
+
+    try:
+        for n in range(num):
+            process = subprocess.Popen(
+                ssh_command,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            time.sleep(1)  # Give the process sometime to init
+            client_pid = process.pid
+            server_pid = get_ssh_server_pid(client_pid)
+            sshs.append((process, client_pid, server_pid))
+            print(
+                "- [run_ssh_clients] {} Start ssh process with PID: {}, server-side PID: {}".format(
+                    n, client_pid, server_pid
+                )
+            )
+
+    except Exception as e:
+        print("SSH localhost error occurred: {}".format(e))
+
+    return sshs
 
 
 def generate_random_string(length):
@@ -329,20 +408,20 @@ def printBenchmarkResult(bm_data):
     total_avg_cpu = 0
     total_avg_memory = 0
 
-    for process_id, measurements in bm_data.items():
+    for process_id, data_entry in bm_data.items():
         total_cpu = 0
         total_memory = 0
         max_cpu = float("-inf")  # Initialize max values
         max_memory = float("-inf")
 
-        for cpu_time, memory in measurements:
+        for cpu_time, memory in data_entry[1]:
             total_cpu += cpu_time
             total_memory += memory
             max_cpu = max(max_cpu, cpu_time)
             max_memory = max(max_memory, memory)
 
-        avg_cpu_time = total_cpu / len(measurements)
-        avg_memory = total_memory / len(measurements)
+        avg_cpu_time = total_cpu / len(data_entry[1])
+        avg_memory = total_memory / len(data_entry[1])
 
         total_avg_cpu += avg_cpu_time
         total_avg_memory += avg_memory
@@ -350,7 +429,7 @@ def printBenchmarkResult(bm_data):
         rows.append(
             (
                 process_id,
-                "picocom",
+                "{}".format(data_entry[0]),
                 "{:.2f}".format(avg_cpu_time),
                 max_cpu,
                 "{:.2f}".format(avg_memory),
@@ -418,6 +497,12 @@ def main():
         action="store_true",
         help="Enable benchmarking CPU usage of each involved process using PID and top (time cost is intensive)",
     )
+    parser.add_argument(
+        "--ssh_username",
+        type=str,
+        default="vagrant",
+        help="SSH username used for OpenSSH tests. Instead of password, key based authentication is used!",
+    )
 
     args = parser.parse_args()
     if args.num <= 0:
@@ -426,6 +511,13 @@ def main():
     if args.duration <= 0:
         eprint("Error: Test duration must be positive!")
         sys.exit(1)
+
+    print(
+        "# Run {} SSH connections on localhost for performance benchmarking. Username: {}".format(
+            args.num, args.ssh_username
+        )
+    )
+    sshs = run_ssh_clients(args.num, args.ssh_username)
 
     print(
         "# Create {} PTY pairs and run {} picocom processes.".format(
@@ -450,8 +542,14 @@ def main():
     workload_traffic_thread.start()
 
     bm_data = {}
+    bm_pids = list()
+    # Add both picocom and SSH processes into the benchmarking list
     for process in picocoms:
-        bm_data[process.pid] = list()
+        bm_data[process.pid] = ("picocom", list())
+        bm_pids.append(process.pid)
+    for ssh in sshs:
+        bm_data[ssh[2]] = ("sshd", list())
+        bm_pids.append(ssh[2])
 
     try:
         print("\n" * 3, end="")
@@ -470,18 +568,18 @@ def main():
             bm_start = time.time()
             # WARNING: The benchmarking needs some time... So, the actual time spent on benchmarking measurements can be
             # longer or even much longer than one second, which is the designed monitoring step length...
-            for process in picocoms:
+            for pid in bm_pids:
                 if args.bm_pid_cpu:
                     entry = (
-                        get_process_cpu_usage_with_top(process.pid),
-                        get_process_memory_usage_with_proc(process.pid),
+                        get_process_cpu_usage_with_top(pid),
+                        get_process_memory_usage_with_proc(pid),
                     )
                 else:
                     entry = (
                         -1,
-                        get_process_memory_usage_with_proc(process.pid),
+                        get_process_memory_usage_with_proc(pid),
                     )
-                bm_data[process.pid].append(entry)
+                bm_data[pid][1].append(entry)
             bm_duration = time.time() - bm_start
             print(
                 "- Current iteration index:  {}, time taken for benchmarking: {:.2f}".format(
@@ -517,7 +615,7 @@ def main():
     except KeyboardInterrupt:
         print("\nKeyboardInterrupt detected! Run cleanups")
     finally:
-        run_cleanup(ptys, picocoms, output_log_files)
+        run_cleanup(ptys, picocoms, output_log_files, [s[0] for s in sshs])
 
 
 if __name__ == "__main__":
