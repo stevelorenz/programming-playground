@@ -232,6 +232,8 @@ def check_workload_traffic_result(ptys):
 
 def get_process_cpu_usage_with_top(pid):
     """Get the CPU and memory usage of a specific process using the top command.
+    WARNING: Comparing to directly using proc, this top based approach could take a lot of time and impact the expected
+    benchmarking duration... So, be careful when using this method...
 
     :param pid: Process ID
     :type pid:
@@ -290,7 +292,7 @@ def get_system_cpu_usage_with_top():
         raise RuntimeError("Failed to retrieve CPU usage: {}".format(e))
 
 
-def get_memory_usage_with_proc(pid):
+def get_process_memory_usage_with_proc(pid):
     """Get memory usage of the given PID (ONLY for Linux)
 
     :param pid:
@@ -371,8 +373,8 @@ def printBenchmarkResult(bm_data):
     header = "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
         "Process ID",
         "Type",
-        "Average CPU Usage (%)",
-        "Max CPU Usage (%)",
+        "Average CPU Usage (%, SC)",
+        "Max CPU Usage (%, SC)",
         "Average Memory (B)",
         "Max Memory (B)",
     )
@@ -408,7 +410,13 @@ def main():
         "--duration",
         type=int,
         default=10,
-        help="Test duration in seconds.",
+        help="(Expected) Test duration in seconds. The actual duration could be longer due to the benchmarking time cost",
+    )
+    parser.add_argument(
+        "--bm_pid_cpu",
+        default=False,
+        action="store_true",
+        help="Enable benchmarking CPU usage of each involved process using PID and top (time cost is intensive)",
     )
 
     args = parser.parse_args()
@@ -447,19 +455,42 @@ def main():
 
     try:
         print("\n" * 3, end="")
-        for d in range(1, args.duration + 1, 1):
+        if args.bm_pid_cpu:
+            print(
+                "- Enable benchmarking CPU usage of each involved process using PID and top"
+            )
+        else:
+            print(
+                "- Benchmarking CPU usage of each involved process is disabled! Set usage to -1 just for NA!"
+            )
+
+        test_start = time.time()
+        for i in range(1, args.duration + 1, 1):
             # Run CPU and memory benchmarking
+            bm_start = time.time()
+            # WARNING: The benchmarking needs some time... So, the actual time spent on benchmarking measurements can be
+            # longer or even much longer than one second, which is the designed monitoring step length...
             for process in picocoms:
-                bm_data[process.pid].append(
-                    (
+                if args.bm_pid_cpu:
+                    entry = (
                         get_process_cpu_usage_with_top(process.pid),
-                        get_memory_usage_with_proc(process.pid),
+                        get_process_memory_usage_with_proc(process.pid),
                     )
+                else:
+                    entry = (
+                        -1,
+                        get_process_memory_usage_with_proc(process.pid),
+                    )
+                bm_data[process.pid].append(entry)
+            bm_duration = time.time() - bm_start
+            print(
+                "- Current iteration index:  {}, time taken for benchmarking: {:.2f}".format(
+                    i, bm_duration
                 )
-            print("- Current duration: {} s".format(d))
-            time.sleep(1)
+            )
+            time.sleep(max(0, 1 - bm_duration))
         print("\n" * 3, end="")
-        print("=" * 120)
+        print("=" * 200)
         printBenchmarkResult(bm_data)
         system_cpu_usage_after = get_system_cpu_usage_with_top()
         system_cpu_usage_diff = system_cpu_usage_after - system_cpu_usage_before
@@ -469,12 +500,19 @@ def main():
                 system_cpu_usage_before, system_cpu_usage_after, system_cpu_usage_diff
             )
         )
-        print("=" * 120)
+        print("=" * 200)
         print("\n" * 3, end="")
         workload_traffic_stop_event.set()
         workload_traffic_thread.join()
 
         check_workload_traffic_result(ptys)
+
+        test_duration = time.time() - test_start
+        print(
+            "# Expected test duration: {:.2f} seconds, actual duration: {:.2f} seconds".format(
+                args.duration, test_duration
+            )
+        )
 
     except KeyboardInterrupt:
         print("\nKeyboardInterrupt detected! Run cleanups")
