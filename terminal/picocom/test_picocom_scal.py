@@ -397,13 +397,15 @@ def get_process_memory_usage_with_proc(pid):
 
 def printBenchmarkResult(bm_data):
     """Print the CPU and memory usage in a table
+    TODO: Refactor this to make it more elegant...
 
     :param bm_data:
     :type bm_data:
     """
-    rows = []
+    rows = list()
     total_avg_cpu = 0
     total_avg_memory = 0
+    cpu_is_na = False  # Mark that the per-process CPU measurement is NA here!
 
     for process_id, data_entry in bm_data.items():
         total_cpu = 0
@@ -411,34 +413,46 @@ def printBenchmarkResult(bm_data):
         max_cpu = float("-inf")  # Initialize max values
         max_memory = float("-inf")
 
-        for cpu_time, memory in data_entry[1]:
-            total_cpu += cpu_time
+        for cpu, memory in data_entry[1]:
+            if cpu < 0:
+                cpu_is_na = True
+            total_cpu += cpu
             total_memory += memory
-            max_cpu = max(max_cpu, cpu_time)
+            max_cpu = max(max_cpu, cpu)
             max_memory = max(max_memory, memory)
 
-        avg_cpu_time = total_cpu / len(data_entry[1])
+        avg_cpu = total_cpu / len(data_entry[1])
         avg_memory = total_memory / len(data_entry[1])
 
-        total_avg_cpu += avg_cpu_time
+        total_avg_cpu += avg_cpu
         total_avg_memory += avg_memory
 
+        if cpu_is_na:
+            avg_cpu_item = "NA"
+            max_cpu_item = "NA"
+        else:
+            avg_cpu_item = "{:.2f}".format(avg_cpu)
+            max_cpu_item = "{:.2f}".format(max_cpu)
         rows.append(
             (
                 process_id,
                 "{}".format(data_entry[0]),
-                "{:.2f}".format(avg_cpu_time),
-                max_cpu,
+                avg_cpu_item,
+                max_cpu_item,
                 "{:.2f}".format(avg_memory),
                 max_memory,
             )
         )
 
+    if cpu_is_na:
+        total_cpu_item = "NA"
+    else:
+        total_cpu_item = "{:.2f}".format(total_avg_cpu)
     rows.append(
         (
             "Summary",
             "-",
-            "{:.2f}".format(total_avg_cpu),
+            total_cpu_item,
             "-",
             "{:.2f}".format(total_avg_memory),
             "-",
@@ -449,8 +463,8 @@ def printBenchmarkResult(bm_data):
     header = "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
         "Process ID",
         "Type",
-        "Average CPU Usage (%, SC)",
-        "Max CPU Usage (%, SC)",
+        "Average CPU Usage (%)",
+        "Max CPU Usage (%)",
         "Average Memory (B)",
         "Max Memory (B)",
     )
@@ -514,6 +528,15 @@ def main():
     if args.duration <= 0:
         eprint("Error: Test duration must be positive!")
         sys.exit(1)
+    if args.ssh_port <= 0:
+        eprint("Error: SSH port must be positive!")
+        sys.exit(1)
+
+    # System-level CPU usages
+    system_cpu_usages = list()
+    system_cpu_usage_before = (
+        get_system_cpu_usage_with_top()
+    )  # "IDLE" CPU usage before running any tests
 
     print(
         "# Run {} SSH connections on localhost for performance benchmarking. Username: {}, port: {}".format(
@@ -538,7 +561,6 @@ def main():
         "# Start the workload_traffic_thread to inject test traffic for created PTY pairs"
     )
 
-    system_cpu_usage_before = get_system_cpu_usage_with_top()
     workload_traffic_thread = threading.Thread(
         target=run_workload_traffic, args=(ptys,), daemon=True
     )
@@ -566,8 +588,9 @@ def main():
             )
 
         test_start = time.time()
+        # Start the actual test and benchmarking iterations
         for i in range(1, args.duration + 1, 1):
-            # Run CPU and memory benchmarking
+            # Try to run per-process CPU and memory benchmarking
             bm_start = time.time()
             # WARNING: The benchmarking needs some time... So, the actual time spent on benchmarking measurements can be
             # longer or even much longer than one second, which is the designed monitoring step length...
@@ -589,16 +612,26 @@ def main():
                     i, bm_duration
                 )
             )
+            # Run system-level CPU measurements
+            system_cpu_usage_after = get_system_cpu_usage_with_top()
+            system_cpu_usage_diff = system_cpu_usage_after - system_cpu_usage_before
+            system_cpu_usages.append(system_cpu_usage_diff)
+
             time.sleep(max(0, 1 - bm_duration))
+
         print("\n" * 3, end="")
         print("=" * 200)
         printBenchmarkResult(bm_data)
-        system_cpu_usage_after = get_system_cpu_usage_with_top()
-        system_cpu_usage_diff = system_cpu_usage_after - system_cpu_usage_before
         print("\n" * 3, end="")
+
+        print(system_cpu_usages)
+        system_cpu_usages = [x for x in system_cpu_usages if x >= 0]
+        print(system_cpu_usages)
         print(
-            "# Whole system CPU usage: before: {:.2f}, after: {:.2f}, diff: {:.2f}".format(
-                system_cpu_usage_before, system_cpu_usage_after, system_cpu_usage_diff
+            "# Whole system CPU usage: before: {:.2f}%, average: {:.2f}%, max: {:.2f}%".format(
+                system_cpu_usage_before,
+                sum(system_cpu_usages) / len(system_cpu_usages),
+                max(system_cpu_usages),
             )
         )
         print("=" * 200)
