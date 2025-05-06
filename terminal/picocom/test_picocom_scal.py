@@ -33,7 +33,9 @@ TEST_DATA_BUF_SIZE = 1024
 #
 # Global variables
 #
-# Event to stop the sending of workload traffic in the worker thread
+# Enable debugging mode with verbose outputs
+DEBUG = False
+# Event to stop the sending of workload traffic in all worker threads
 workload_traffic_stop_event = threading.Event()
 
 
@@ -250,38 +252,57 @@ def generate_random_string(length):
     return random_string
 
 
-def run_workload_traffic(ptys, baud_rate=115200):
+def run_workload_traffic(pty, baud_rate=115200):
     """Run workload traffic to test the performance of picocoms
+    This part is tricky because actually a parallel sending of traffic to a bunch of master PTY devices is needed!!!
+    The current approach is just use multi-threading to spawn a dedicated thread for each master PTY device!
 
-    :param ptys:
-    :type ptys:
+    :param pty:
+    :type pty:
     :return:
     :rtype:
     """
     bits_per_byte = 10  # 8 data bits + 1 start bit + 1 stop bit
     sleep_time = (TEST_DATA_BUF_SIZE * bits_per_byte) / baud_rate
 
-    input_data = dict()
-    for pty in ptys:
-        input_data[pty["master_fd"]] = list()
+    if DEBUG:
+        print(
+            "- [thread:{}] sleep_time: {} seconds".format(
+                threading.current_thread().name, sleep_time
+            )
+        )
+
+    input_data = list()
 
     while not workload_traffic_stop_event.is_set():
-        for pty in ptys:
-            test_data = generate_random_string(TEST_DATA_BUF_SIZE)
-            os.write(pty["master_fd"], test_data.encode())
-            input_data[pty["master_fd"]].append(test_data)
-        time.sleep(sleep_time)
+        start = time.time()
+        # WARNING: Potential performance issue/limitation here!
+        test_data = generate_random_string(TEST_DATA_BUF_SIZE)
+        os.write(pty["master_fd"], test_data.encode())
+        input_data.append(test_data)
+        duration = time.time() - start
+        if DEBUG:
+            print(
+                "- [thread:{}] IO duration: {} seconds, actual sleep time: {} seconds".format(
+                    threading.current_thread().name, duration, (sleep_time - duration)
+                )
+            )
+        time.sleep(max(0, sleep_time - duration))
 
     # Dump workload traffic (input traffic) into files
-    for pty in ptys:
-        with open(
-            "./{}_{}_input.log".format(pty["master_fd"], pty["slave_fd"]), "w+"
-        ) as file:
-            for data in input_data[pty["master_fd"]]:
-                file.write(data)
+    with open(
+        "./{}_{}_input.log".format(pty["master_fd"], pty["slave_fd"]), "w+"
+    ) as file:
+        for data in input_data:
+            file.write(data)
 
 
 def check_workload_traffic_result(ptys):
+    """Check the workload traffic test result by comparing content of input and output log files
+
+    :param ptys:
+    :type ptys:
+    """
     print("# Check the input and output result of test workload traffic")
     all_pass = True
     for pty in ptys:
@@ -545,6 +566,13 @@ def main():
         help="SSH port",
     )
 
+    parser.add_argument(
+        "--debug",
+        default=False,
+        action="store_true",
+        help="Enable debugging mode with verbose output",
+    )
+
     args = parser.parse_args()
     if args.num <= 0:
         eprint("Error: Number of picocom processes must be positive!")
@@ -555,6 +583,14 @@ def main():
     if args.ssh_port <= 0:
         eprint("Error: SSH port must be positive!")
         sys.exit(1)
+
+    global DEBUG
+    if args.debug:
+        print("# Debug mode is enabled!")
+        DEBUG = True
+    else:
+        print("# Debug mode is by default disabled.")
+        DEBUG = False
 
     # System-level CPU usages
     system_cpu_usages = list()
@@ -585,11 +621,15 @@ def main():
         "# Start the workload_traffic_thread to inject test traffic for created PTY pairs"
     )
 
-    # Set daemon to True, so the worker thread will terminate when main thread ends
-    workload_traffic_thread = threading.Thread(
-        target=run_workload_traffic, args=(ptys,), daemon=True
-    )
-    workload_traffic_thread.start()
+    # A list of worker threads for sending test traffic
+    worker_threads = list()
+    for pty in ptys:
+        # Set daemon to True, so the worker threads will terminate when main thread ends
+        worker_threads.append(
+            threading.Thread(target=run_workload_traffic, args=(pty,), daemon=True)
+        )
+    for t in worker_threads:
+        t.start()
 
     bm_data = {}
     bm_pids = list()
@@ -661,8 +701,11 @@ def main():
         )
         print("=" * 200)
         print("\n" * 3, end="")
+
+        # Wait until all worker threads terminate
         workload_traffic_stop_event.set()
-        workload_traffic_thread.join()  # Wait until the work thread terminates
+        for t in worker_threads:
+            t.join()
 
         check_workload_traffic_result(ptys)
 
