@@ -195,6 +195,17 @@ def get_ssh_server_pid(client_pid):
 
 
 def run_ssh_clients(num, username, port):
+    """Run SSH clients connecting to localhost for performance benchmarking
+
+    :param num:
+    :type num:
+    :param username:
+    :type username:
+    :param port:
+    :type port:
+    :return:
+    :rtype:
+    """
     ssh_command = ["ssh", "{}@127.0.0.1".format(username), "-p", "{}".format(port)]
     sshs = list()
 
@@ -207,7 +218,8 @@ def run_ssh_clients(num, username, port):
                 stderr=subprocess.PIPE,
                 text=True,
             )
-            time.sleep(1)  # Give the process sometime to init
+            # Give the process sometime to init... Otherwise, error is raised when trying to retrieve server-side PID
+            time.sleep(1)
             client_pid = process.pid
             server_pid = get_ssh_server_pid(client_pid)
             sshs.append((process, client_pid, server_pid))
@@ -219,6 +231,7 @@ def run_ssh_clients(num, username, port):
 
     except Exception as e:
         print("SSH localhost error occurred: {}".format(e))
+        raise e
 
     return sshs
 
@@ -395,17 +408,18 @@ def get_process_memory_usage_with_proc(pid):
         raise RuntimeError("Failed to get memory usage using proc: {}".format(e))
 
 
-def printBenchmarkResult(bm_data):
+def printBenchmarkResult(bm_data, bm_pid_cpu):
     """Print the CPU and memory usage in a table
     TODO: Refactor this to make it more elegant...
 
     :param bm_data:
     :type bm_data:
+    :param bm_pid_cpu:
+    :type bm_pid_cpu
     """
     rows = list()
     total_avg_cpu = 0
     total_avg_memory = 0
-    cpu_is_na = False  # Mark that the per-process CPU measurement is NA here!
 
     for process_id, data_entry in bm_data.items():
         total_cpu = 0
@@ -414,8 +428,6 @@ def printBenchmarkResult(bm_data):
         max_memory = float("-inf")
 
         for cpu, memory in data_entry[1]:
-            if cpu < 0:
-                cpu_is_na = True
             total_cpu += cpu
             total_memory += memory
             max_cpu = max(max_cpu, cpu)
@@ -427,7 +439,7 @@ def printBenchmarkResult(bm_data):
         total_avg_cpu += avg_cpu
         total_avg_memory += avg_memory
 
-        if cpu_is_na:
+        if not bm_pid_cpu:
             avg_cpu_item = "NA"
             max_cpu_item = "NA"
         else:
@@ -444,7 +456,7 @@ def printBenchmarkResult(bm_data):
             )
         )
 
-    if cpu_is_na:
+    if not bm_pid_cpu:
         total_cpu_item = "NA"
     else:
         total_cpu_item = "{:.2f}".format(total_avg_cpu)
@@ -460,46 +472,58 @@ def printBenchmarkResult(bm_data):
     )
 
     # Create a table header
-    header = "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
-        "Process ID",
-        "Type",
-        "Average CPU Usage (%)",
-        "Max CPU Usage (%)",
-        "Average Memory (B)",
-        "Max Memory (B)",
-    )
+    if not bm_pid_cpu:
+        header = "{:<15}{:<15}{:<25}{:<25}".format(
+            "Process ID",
+            "Type",
+            "Average Memory (B)",
+            "Max Memory (B)",
+        )
+    else:
+        header = "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
+            "Process ID",
+            "Type",
+            "Average CPU Usage (%)",
+            "Max CPU Usage (%)",
+            "Average Memory (B)",
+            "Max Memory (B)",
+        )
+
     separator = "-" * len(header)
 
     # Print the table to the console
     print(header)
     print(separator)
     for row in rows:
-        print(
-            "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
-                row[0], row[1], row[2], row[3], row[4], row[5]
+        if not bm_pid_cpu:
+            print("{:<15}{:<15}{:<25}{:<25}".format(row[0], row[1], row[4], row[5]))
+        else:
+            print(
+                "{:<15}{:<15}{:<25}{:<25}{:<25}{:<25}".format(
+                    row[0], row[1], row[2], row[3], row[4], row[5]
+                )
             )
-        )
 
 
 def main():
     """Main function. LUGTSD"""
 
     parser = argparse.ArgumentParser(
-        description="(Try to ;)) Test picocom+OpenSSH combo scalability"
+        description="(Try to ;)) Test picocom+OpenSSH combo scalability using emulation"
     )
 
     parser.add_argument(
         "-n",
         "--num",
         type=int,
-        default=3,
+        default=5,
         help="Number of picocom processes",
     )
     parser.add_argument(
         "-d",
         "--duration",
         type=int,
-        default=10,
+        default=5,
         help="(Expected) Test duration in seconds. The actual duration could be longer due to the benchmarking time cost",
     )
     parser.add_argument(
@@ -561,6 +585,7 @@ def main():
         "# Start the workload_traffic_thread to inject test traffic for created PTY pairs"
     )
 
+    # Set daemon to True, so the worker thread will terminate when main thread ends
     workload_traffic_thread = threading.Thread(
         target=run_workload_traffic, args=(ptys,), daemon=True
     )
@@ -621,12 +646,12 @@ def main():
 
         print("\n" * 3, end="")
         print("=" * 200)
-        printBenchmarkResult(bm_data)
+        printBenchmarkResult(bm_data, args.bm_pid_cpu)
         print("\n" * 3, end="")
 
-        print(system_cpu_usages)
-        system_cpu_usages = [x for x in system_cpu_usages if x >= 0]
-        print(system_cpu_usages)
+        system_cpu_usages = [
+            x for x in system_cpu_usages if x >= 0
+        ]  # Filter out negative/none-sense values...
         print(
             "# Whole system CPU usage: before: {:.2f}%, average: {:.2f}%, max: {:.2f}%".format(
                 system_cpu_usage_before,
@@ -637,7 +662,7 @@ def main():
         print("=" * 200)
         print("\n" * 3, end="")
         workload_traffic_stop_event.set()
-        workload_traffic_thread.join()
+        workload_traffic_thread.join()  # Wait until the work thread terminates
 
         check_workload_traffic_result(ptys)
 
