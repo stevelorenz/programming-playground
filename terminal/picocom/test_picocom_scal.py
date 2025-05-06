@@ -554,6 +554,12 @@ def main():
         help="Enable benchmarking CPU usage of each involved process using PID and top (time cost is intensive)",
     )
     parser.add_argument(
+        "--disable_ssh",
+        default=False,
+        action="store_true",
+        help="Disable SSH related tests",
+    )
+    parser.add_argument(
         "--ssh_username",
         type=str,
         default="vagrant",
@@ -598,12 +604,14 @@ def main():
         get_system_cpu_usage_with_top()
     )  # "IDLE" CPU usage before running any tests
 
-    print(
-        "# Run {} SSH connections on localhost for performance benchmarking. Username: {}, port: {}".format(
-            args.num, args.ssh_username, args.ssh_port
+    sshs = list()
+    if not args.disable_ssh:
+        print(
+            "# Run {} SSH connections on localhost for performance benchmarking. Username: {}, port: {}".format(
+                args.num, args.ssh_username, args.ssh_port
+            )
         )
-    )
-    sshs = run_ssh_clients(args.num, args.ssh_username, args.ssh_port)
+        sshs = run_ssh_clients(args.num, args.ssh_username, args.ssh_port)
 
     print(
         "# Create {} PTY pairs and run {} picocom processes.".format(
@@ -637,9 +645,10 @@ def main():
     for process in picocoms:
         bm_data[process.pid] = ("picocom", list())
         bm_pids.append(process.pid)
-    for ssh in sshs:
-        bm_data[ssh[2]] = ("sshd", list())
-        bm_pids.append(ssh[2])
+    if not args.disable_ssh:
+        for ssh in sshs:
+            bm_data[ssh[2]] = ("sshd", list())
+            bm_pids.append(ssh[2])
 
     try:
         print("\n" * 3, end="")
