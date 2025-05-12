@@ -608,10 +608,10 @@ def main():
         help="SSH port",
     )
     parser.add_argument(
-        "--enable_ssh_traffic",
+        "--disable_ssh_traffic",
         default=False,
         action="store_true",
-        help="Enable sending workload test traffic to all spawned SSH client processes (WARNING: relatively performance intensive)",
+        help="Disable sending workload test traffic to all spawned SSH client processes",
     )
 
     parser.add_argument(
@@ -685,7 +685,7 @@ def main():
             )
         )
 
-    if args.enable_ssh_traffic:
+    if not args.disable_ssh_traffic:
         print(
             "# Start {} worker threads to inject test traffic for spawned SSH client processes".format(
                 len(sshs)
