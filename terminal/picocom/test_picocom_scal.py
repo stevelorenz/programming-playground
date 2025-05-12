@@ -252,13 +252,15 @@ def generate_random_string(length):
     return random_string
 
 
-def run_workload_traffic(pty, baud_rate=115200):
+def run_workload_traffic_picocom(pty, baud_rate=(2 * 115200)):
     """Run workload traffic to test the performance of picocoms
     This part is tricky because actually a parallel sending of traffic to a bunch of master PTY devices is needed!!!
     The current approach is just use multi-threading to spawn a dedicated thread for each master PTY device!
 
     :param pty:
     :type pty:
+    :param baud_rate: The baud rate used by the test traffic. Two times the designed baud_rate is used to mimic the
+    bidirectional traffic.
     :return:
     :rtype:
     """
@@ -283,7 +285,7 @@ def run_workload_traffic(pty, baud_rate=115200):
         duration = time.time() - start
         if DEBUG:
             print(
-                "- [thread:{}] IO duration: {} seconds, actual sleep time: {} seconds".format(
+                "- [run_workload_traffic_picocom] [thread:{}] IO duration: {} seconds, actual sleep time: {} seconds".format(
                     threading.current_thread().name, duration, (sleep_time - duration)
                 )
             )
@@ -295,6 +297,40 @@ def run_workload_traffic(pty, baud_rate=115200):
     ) as file:
         for data in input_data:
             file.write(data)
+
+
+def run_workload_traffic_ssh(ssh_client_process, baud_rate=(2 * 115200)):
+    """Run workload traffic to test the performance of OpenSSH server processes
+
+    :param ssh_client_process:
+    :type ssh_client_process:
+    :param baud_rate:
+    :type baud_rate:
+    """
+    bits_per_byte = 10  # 8 data bits + 1 start bit + 1 stop bit
+    sleep_time = (TEST_DATA_BUF_SIZE * bits_per_byte) / baud_rate
+
+    if DEBUG:
+        print(
+            "- [thread:{}] sleep_time: {} seconds".format(
+                threading.current_thread().name, sleep_time
+            )
+        )
+
+    while not workload_traffic_stop_event.is_set():
+        start = time.time()
+        # WARNING: Potential performance issue/limitation here!
+        test_data = generate_random_string(TEST_DATA_BUF_SIZE)
+        ssh_client_process.stdin.write(test_data)
+        ssh_client_process.stdin.flush()
+        duration = time.time() - start
+        if DEBUG:
+            print(
+                "- [run_workload_traffic_ssh] [thread:{}] IO duration: {} seconds, actual sleep time: {} seconds".format(
+                    threading.current_thread().name, duration, (sleep_time - duration)
+                )
+            )
+        time.sleep(max(0, sleep_time - duration))
 
 
 def check_workload_traffic_result(ptys):
@@ -631,11 +667,22 @@ def main():
 
     # A list of worker threads for sending test traffic
     worker_threads = list()
+
     for pty in ptys:
         # Set daemon to True, so the worker threads will terminate when main thread ends
         worker_threads.append(
-            threading.Thread(target=run_workload_traffic, args=(pty,), daemon=True)
+            threading.Thread(
+                target=run_workload_traffic_picocom, args=(pty,), daemon=True
+            )
         )
+
+    for ssh in sshs:
+        worker_threads.append(
+            threading.Thread(
+                target=run_workload_traffic_ssh, args=(ssh[0],), daemon=True
+            )
+        )
+
     for t in worker_threads:
         t.start()
 
@@ -702,7 +749,10 @@ def main():
             x for x in system_cpu_usages if x >= 0
         ]  # Filter out negative/none-sense values...
         print(
-            "# Whole system CPU usage: before: {:.2f}%, average: {:.2f}%, max: {:.2f}%".format(
+            (
+                '# System-wide CPU usage (measured with top command): before tests (should be "IDLE" state): {:.2f}%; '
+                "test average usage: {:.2f}%, maximal detected usage (should be the peak value): {:.2f}%"
+            ).format(
                 system_cpu_usage_before,
                 sum(system_cpu_usages) / len(system_cpu_usages),
                 max(system_cpu_usages),
