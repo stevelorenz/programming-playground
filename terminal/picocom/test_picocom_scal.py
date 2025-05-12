@@ -607,6 +607,12 @@ def main():
         default=22,
         help="SSH port",
     )
+    parser.add_argument(
+        "--enable_ssh_traffic",
+        default=False,
+        action="store_true",
+        help="Enable sending workload test traffic to all spawned SSH client processes (WARNING: relatively performance intensive)",
+    )
 
     parser.add_argument(
         "--debug",
@@ -661,13 +667,16 @@ def main():
     picocoms, output_log_files = run_picocom(ptys)
     time.sleep(1)
 
-    print(
-        "# Start the workload_traffic_thread to inject test traffic for created PTY pairs"
-    )
-
     # A list of worker threads for sending test traffic
+    # WARNING: This thread based approach is JUST a best-effort approach which could have performance issues for
+    # a relative large number of spawned SSH processes.
     worker_threads = list()
 
+    print(
+        "# Start {} worker threads to inject test traffic for created PTY pairs".format(
+            len(ptys)
+        )
+    )
     for pty in ptys:
         # Set daemon to True, so the worker threads will terminate when main thread ends
         worker_threads.append(
@@ -676,12 +685,18 @@ def main():
             )
         )
 
-    for ssh in sshs:
-        worker_threads.append(
-            threading.Thread(
-                target=run_workload_traffic_ssh, args=(ssh[0],), daemon=True
+    if args.enable_ssh_traffic:
+        print(
+            "# Start {} worker threads to inject test traffic for spawned SSH client processes".format(
+                len(sshs)
             )
         )
+        for ssh in sshs:
+            worker_threads.append(
+                threading.Thread(
+                    target=run_workload_traffic_ssh, args=(ssh[0],), daemon=True
+                )
+            )
 
     for t in worker_threads:
         t.start()
