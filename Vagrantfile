@@ -59,6 +59,9 @@ Vagrant.configure("2") do |config|
     playground.vm.provision :shell, inline: $bootstrap
     playground.vm.provision "ansible_local" do |ansible|
       ansible.playbook = "./ansible/bootstrap.yml"
+      ansible.install = false
+    end
+    playground.vm.provision "ansible_local" do |ansible|
       ansible.playbook = "./ansible/docker.yml"
       ansible.install = false
     end
