@@ -1,0 +1,22 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+
+  tasks:
+    - name: "Update apt repo"
+      become: true
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: "Install qemu"
+      become: true
+      apt:
+        name:
+          - qemu-system-x86
+          - qemu-utils
+
+        state: latest

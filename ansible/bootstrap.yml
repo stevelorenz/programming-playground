@@ -17,6 +17,7 @@
     become: true
     apt:
       name:
+        - autoconf
         - bash-completion
         - bison
         - cmake
