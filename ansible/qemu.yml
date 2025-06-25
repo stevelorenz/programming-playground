@@ -12,11 +12,11 @@
         force_apt_get: yes
         cache_valid_time: 3600
 
-    - name: "Install qemu"
+    - name: "Install minimal qemu setup"
       become: true
       apt:
         name:
-          - qemu-system-x86
+          - qemu-system
           - qemu-utils
 
         state: latest

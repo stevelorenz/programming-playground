@@ -1,0 +1,9 @@
+/dts-v1/;
+
+/ {
+    compatible = "minimal,test";
+
+    testnode {
+        testproperty = "hello, world";
+    };
+};
