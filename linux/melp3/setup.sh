@@ -18,6 +18,7 @@ sudo apt-get install -y \
     device-tree-compiler \
     g++ \
     gcc \
+    gcc-arm-linux-gnueabi \
     git \
     libtool \
     libtool-bin \
