@@ -15,7 +15,9 @@ sudo apt-get update
 sudo apt-get install -y \
     autoconf \
     automake \
+    chrpath \
     device-tree-compiler \
+    diffstat \
     g++ \
     gcc \
     gcc-arm-linux-gnueabi \
@@ -29,3 +31,4 @@ sudo apt-get install -y \
     pkg-config \
     qemu-system \
     u-boot-tools
+

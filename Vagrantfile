@@ -6,8 +6,8 @@
 ###############
 
 CPUS = 4
-RAM = 4096
-DISK_SIZE = "60GB"
+RAM = 8192
+DISK_SIZE = "100GB"
 
 BOX = "bento/ubuntu-22.04"
 
