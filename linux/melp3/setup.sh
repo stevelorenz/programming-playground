@@ -18,17 +18,22 @@ sudo apt-get install -y \
     chrpath \
     device-tree-compiler \
     diffstat \
+    e2fsprogs \
     g++ \
     gcc \
     gcc-arm-linux-gnueabi \
+    genext2fs \
     git \
     libtool \
     libtool-bin \
     m4 \
     make \
     make \
+    mtd-utils \
     patch \
     pkg-config \
     qemu-system \
-    u-boot-tools
+    squashfs-tools \
+    u-boot-tools \
+    util-linux \
 

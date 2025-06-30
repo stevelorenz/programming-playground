@@ -52,10 +52,17 @@ Vagrant.configure("2") do |config|
 
     playground.vm.provision :shell, inline: $bootstrap
     playground.vm.provision "ansible_local" do |ansible|
+      # Essential utilities for a minimal playable OS
       ansible.playbook = "./ansible/bootstrap.yml"
       ansible.install = false
     end
     playground.vm.provision "ansible_local" do |ansible|
+      # For Linux kernel development, including building and testing device drivers
+      ansible.playbook = "./ansible/linux_kernel_dev.yml"
+      ansible.install = false
+    end
+    playground.vm.provision "ansible_local" do |ansible|
+      # Docker container CE version
       ansible.playbook = "./ansible/docker.yml"
       ansible.install = false
     end
