@@ -21,7 +21,9 @@
         - bash-completion
         - bison
         - cmake
+        - devscripts
         - dfc
+        - fakeroot
         - flex
         - gdb
         - git
@@ -30,6 +32,7 @@
         - iperf3
         - libelf-dev
         - libssl-dev
+        - lintian
         - make
         - net-tools
         - pkg-config
@@ -38,6 +41,7 @@
         - python3-pip
         - sudo
         - tmux
+        - tree
         - xauth
         - xorg
         - xterm
