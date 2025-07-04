@@ -1,0 +1,31 @@
+---
+- name: Install Redis and Python 3 bindings on Ubuntu 22.04
+  hosts: all
+  become: true
+
+  vars:
+    redis_python_bindings:
+      - python3-redis
+
+  tasks:
+
+    - name: Update APT cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install Redis server
+      apt:
+        name: redis-server
+        state: present
+
+    - name: Ensure Redis is enabled and running
+      systemd:
+        name: redis-server
+        enabled: yes
+        state: started
+
+    - name: Install Python 3 Redis bindings
+      apt:
+        name: "{{ redis_python_bindings }}"
+        state: present
