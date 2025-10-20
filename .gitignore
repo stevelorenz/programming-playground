@@ -299,3 +299,4 @@ machine_learning/hands_on_machine_learning_with_scikit_learn_tensorflow/logs/**
 *.img
 *.bin
 log.bochsrc.disk
+log.bochsrc.macos.disk

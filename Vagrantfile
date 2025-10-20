@@ -66,6 +66,10 @@ Vagrant.configure("2") do |config|
       ansible.playbook = "./ansible/docker.yml"
       ansible.install = false
     end
+    playground.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = "./ansible/bochs.yml"
+      ansible.install = false
+    end
 
     playground.ssh.forward_agent = true
     playground.ssh.forward_x11 = true
