@@ -33,6 +33,7 @@
         - libelf-dev
         - libssl-dev
         - lintian
+        - lxc
         - make
         - net-tools
         - pkg-config
