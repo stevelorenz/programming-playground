@@ -1,0 +1,21 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+
+  tasks:
+    - name: "Update apt repo"
+      become: true
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: "Install LXC container and related utilities"
+      become: true
+      apt:
+        name:
+          - lxc
+
+        state: latest

@@ -62,11 +62,6 @@ Vagrant.configure("2") do |config|
       ansible.install = false
     end
     playground.vm.provision "ansible_local" do |ansible|
-      # Docker container CE version
-      ansible.playbook = "./ansible/docker.yml"
-      ansible.install = false
-    end
-    playground.vm.provision "ansible_local" do |ansible|
       ansible.playbook = "./ansible/bochs.yml"
       ansible.install = false
     end
