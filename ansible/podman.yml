@@ -1,0 +1,24 @@
+---
+- hosts: all
+  become: yes
+
+  vars:
+
+  tasks:
+    - name: "Update apt repo"
+      become: true
+      apt:
+        update_cache: yes
+        force_apt_get: yes
+        cache_valid_time: 3600
+
+    - name: "Install Podman container solution and related utilities"
+      become: true
+      apt:
+        name:
+          - buildah
+          - podman
+          - podman-compose
+          - podman-docker
+
+        state: latest

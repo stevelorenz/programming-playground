@@ -9,7 +9,7 @@ CPUS = 4
 RAM = 8192
 DISK_SIZE = "100GB"
 
-BOX = "bento/ubuntu-22.04"
+BOX = "bento/ubuntu-24.04"
 
 #######################
 #  Provision Scripts  #
@@ -45,6 +45,11 @@ Vagrant.configure("2") do |config|
     playground.vm.disk :disk, size: DISK_SIZE, primary: true
     playground.vm.hostname = "playground"
 
+    # Try virtualbox shared folder first (currently works only on x86)
+    playground.vm.synced_folder ".", "/vagrant", type: "virtualbox", optional: true
+    # Fallback to rsync automatically (e.g. for ARM guests)
+    playground.vm.synced_folder ".", "/vagrant", type: "rsync"
+
     playground.vm.provider "virtualbox" do |vb|
       vb.memory = RAM
       vb.cpus = CPUS
@@ -63,6 +68,14 @@ Vagrant.configure("2") do |config|
     end
     playground.vm.provision "ansible_local" do |ansible|
       ansible.playbook = "./ansible/bochs.yml"
+      ansible.install = false
+    end
+    playground.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = "./ansible/qemu.yml"
+      ansible.install = false
+    end
+    playground.vm.provision "ansible_local" do |ansible|
+      ansible.playbook = "./ansible/podman.yml"
       ansible.install = false
     end
 
