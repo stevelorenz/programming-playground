@@ -1,4 +1,24 @@
 obj-m += hello-1.o
+obj-m += hello-2.o
+obj-m += hello-3.o
+obj-m += hello-4.o
+obj-m += hello-5.o
+obj-m += hello-6.o
+obj-m += chardev.o
+obj-m += procfs1.o
+obj-m += hello-sysfs.o
+obj-m += dma.o
+obj-m += startstop.o
+startstop-objs:= start.o stop.o
+obj-m += example_tasklet.o
+obj-m += sched.o
+obj-m += intrpt.o
+obj-m += bottomhalf.o
+obj-m += bh_threaded.o
+obj-m += blkram.o
+obj-m += vnetloop.o
+obj-m += devicetree.o
+
 
 KDIR ?= /lib/modules/$(shell uname -r)/build
 PWD := $(CURDIR)

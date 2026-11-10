@@ -1,0 +1,8 @@
+/* Example device tree fragment */
+lkmpg_device@0 {
+	compatible = "lkmpg,example-device";
+	reg = <0x40000000 0x1000>;
+	label = "LKMPG Test Device";
+	lkmpg,custom-value = <100>;
+	lkmpg,has-clock;
+};
